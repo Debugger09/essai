@@ -1,0 +1,99 @@
+package com.ime.api.materiel.service.impl;
+
+import com.ime.api.materiel.dto.ListeMaterielDto;
+import com.ime.api.materiel.mapper.ListeMaterielMapper;
+import com.ime.api.materiel.model.ListeMateriel;
+import com.ime.api.materiel.model.Materiel;
+import com.ime.api.materiel.repository.ListeMaterielRepository;
+import com.ime.api.materiel.repository.MaterielRepository;
+import com.ime.api.materiel.service.ListeMaterielService;
+import com.ime.api.tache.model.Tache;
+import com.ime.api.tache.repository.TacheRepository;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class ListeMaterielServiceImpl implements ListeMaterielService {
+
+    private final ListeMaterielRepository listeMaterielRepository;
+    private final ListeMaterielMapper listeMaterielMapper;
+    private final MaterielRepository materielRepository;
+    private final TacheRepository tacheRepository;
+
+    @Override
+    public ListeMaterielDto createListeMateriel(ListeMaterielDto dto) {
+        ListeMateriel entity = listeMaterielMapper.toEntity(dto);
+
+        // Récupérer le matériel complet
+        if (dto.getMateriel() != null && dto.getMateriel().getId() != null) {
+            Materiel materiel = materielRepository.findById(dto.getMateriel().getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Matériel introuvable"));
+            entity.setMateriel(materiel);
+        } else {
+            entity.setMateriel(null);
+        }
+
+        // Récupérer la tâche complète
+        if (dto.getTache() != null && dto.getTache().getId() != null) {
+            Tache tache = tacheRepository.findById(dto.getTache().getId())
+                    .orElseThrow(() -> new EntityNotFoundException("Tâche introuvable"));
+            entity.setTache(tache);
+        } else {
+            entity.setTache(null);
+        }
+
+        ListeMateriel saved = listeMaterielRepository.save(entity);
+        return listeMaterielMapper.toDto(saved);
+    }
+
+    @Override
+    public ListeMaterielDto getListeMaterielById(Long id) {
+        ListeMateriel entity = listeMaterielRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ListeMateriel introuvable avec l'id : " + id));
+        return listeMaterielMapper.toDto(entity);
+    }
+
+    @Override
+    public List<ListeMaterielDto> getAllListeMateriels() {
+        return listeMaterielRepository.findAll()
+                .stream()
+                .map(listeMaterielMapper::toDto)
+                .toList();
+    }
+
+    @Override
+    public ListeMaterielDto updateListeMateriel(Long id, ListeMaterielDto dto) {
+        ListeMateriel entity = listeMaterielRepository.findById(id)
+                .map(lm -> {
+                    lm.setQuantite(dto.getQuantite());
+                    // Mettre à jour le matériel
+                    if (dto.getMateriel() != null && dto.getMateriel().getId() != null) {
+                        Materiel materiel = materielRepository.findById(dto.getMateriel().getId())
+                                .orElseThrow(() -> new EntityNotFoundException("Matériel introuvable"));
+                        lm.setMateriel(materiel);
+                    } else {
+                        lm.setMateriel(null);
+                    }
+                    // Mettre à jour la tâche
+                    if (dto.getTache() != null && dto.getTache().getId() != null) {
+                        Tache tache = tacheRepository.findById(dto.getTache().getId())
+                                .orElseThrow(() -> new EntityNotFoundException("Tâche introuvable"));
+                        lm.setTache(tache);
+                    } else {
+                        lm.setTache(null);
+                    }
+                    return listeMaterielRepository.save(lm);
+                })
+                .orElseThrow(() -> new EntityNotFoundException("ListeMateriel introuvable avec l'id : " + id));
+        return listeMaterielMapper.toDto(entity);
+    }
+
+    @Override
+    public void deleteListeMateriel(Long id) {
+        listeMaterielRepository.deleteById(id);
+    }
+}
