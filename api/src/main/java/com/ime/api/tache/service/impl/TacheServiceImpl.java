@@ -26,8 +26,8 @@ public class TacheServiceImpl implements TacheService {
         Tache tache = tacheMapper.toEntity(tacheDto);
 
         // Récupérer le projet complet si présent
-        if (tacheDto.getProjet() != null && tacheDto.getProjet().getId() != null) {
-            Projet projet = projetRepository.findById(tacheDto.getProjet().getId())
+        if (tacheDto.getProjetId() != null) {
+            Projet projet = projetRepository.findById(tacheDto.getProjetId())
                     .orElseThrow(() -> new EntityNotFoundException("Projet introuvable"));
             tache.setProjet(projet);
         } else {
@@ -63,8 +63,8 @@ public class TacheServiceImpl implements TacheService {
                     t.setPriorite(tacheDto.getPriorite());
                     t.setStatutTache(tacheDto.getStatutTache());
                     // Charger le projet complet
-                    if (tacheDto.getProjet() != null && tacheDto.getProjet().getId() != null) {
-                        Projet projet = projetRepository.findById(tacheDto.getProjet().getId())
+                    if (tacheDto.getProjetId() != null) {
+                        Projet projet = projetRepository.findById(tacheDto.getProjetId())
                                 .orElseThrow(() -> new EntityNotFoundException("Projet introuvable"));
                         t.setProjet(projet);
                     } else {

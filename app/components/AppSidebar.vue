@@ -110,7 +110,7 @@ const hasAccess = (requiredRoles) => {
 
 const navigationLinks = computed(() => {
   return [
-    { name: 'Dashboard', to: '/dashboard', icon: HomeIcon, roles: ['ADMIN', 'CHEF_PROJET', 'EMPLOYE'] },
+    { name: 'Dashboard', to: '/', icon: HomeIcon, roles: ['ADMIN', 'CHEF_PROJET', 'EMPLOYE'] },
     { name: 'Utilisateurs', to: '/users', icon: UsersIcon, roles: ['ADMIN'] },
     { name: 'Projets', to: '/projets', icon: FolderIcon, roles: ['ADMIN', 'CHEF_PROJET'] },
     { name: 'Tâches', to: '/taches', icon: BriefcaseIcon, roles: ['ADMIN', 'CHEF_PROJET', 'EMPLOYE'] },

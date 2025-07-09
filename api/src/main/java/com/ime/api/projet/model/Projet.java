@@ -3,6 +3,7 @@ package com.ime.api.projet.model;
 import com.ime.api.projet.enums.StatutProjet;
 import com.ime.api.user.model.User;
 import com.ime.api.tache.model.Tache;
+import com.ime.api.depense.model.Depense;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -48,4 +49,7 @@ public class Projet {
 
     @OneToMany(mappedBy = "projet", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Tache> taches = new ArrayList<>();
+
+    @OneToMany(mappedBy = "projet", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Depense> depenses = new ArrayList<>();
 }

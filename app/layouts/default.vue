@@ -29,6 +29,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useAuth } from '~/composables/useAuth'
+
+// Initialisation du state d'auth pour garantir la persistance sur toute la navigation
+const { user, token } = useAuth()
 
 const isSidebarOpen = ref(false)
 </script>

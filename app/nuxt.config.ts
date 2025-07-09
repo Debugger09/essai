@@ -1,9 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2025-05-15',
-  devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   vite: {
     plugins: [
@@ -13,6 +10,19 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.API_BASE || 'http://localhost:8080/api'
+    }
+  },
+  app: {
+    head: {
+      title: 'IME Project Manager',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+        { key: 'description', name: 'description', content: 'Application de gestion de projets IME' }
+      ],
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }
+      ]
     }
   }
 })

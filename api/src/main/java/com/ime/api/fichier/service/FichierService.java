@@ -6,7 +6,7 @@ import java.util.List;
 public interface FichierService {
     FichierDto createFichier(FichierDto fichierDto);
     FichierDto getFichierById(Long id);
-    List<FichierDto> getAllFichiers();
+    List<FichierDto> getAllFichiers(Long projetId);
     FichierDto updateFichier(Long id, FichierDto fichierDto);
     void deleteFichier(Long id);
 }

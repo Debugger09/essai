@@ -1,8 +1,9 @@
 package com.ime.api.projet.dto;
 
 import com.ime.api.projet.enums.StatutProjet;
-import com.ime.api.tache.model.Tache;
+import com.ime.api.tache.dto.TacheDto;
 import com.ime.api.user.model.User;
+import com.ime.api.depense.dto.DepenseDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,7 +21,8 @@ public class ProjetDto {
     private Date dateFin;
     private float budget;
     private User chefProjet;
-    private List<Tache> taches;
+    private List<TacheDto> taches;
+    private List<DepenseDto> depenses;
     private Date createdAt;
     private Date updatedAt;
 }

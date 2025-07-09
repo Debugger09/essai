@@ -1,6 +1,5 @@
 package com.ime.api.tache.dto;
 
-import com.ime.api.projet.model.Projet;
 import com.ime.api.tache.model.enums.PrioriteTache;
 import com.ime.api.tache.model.enums.StatutTache;
 
@@ -18,7 +17,7 @@ public class TacheDto {
     private Date dateEcheance;
     private PrioriteTache priorite;
     private StatutTache statutTache;
-    private Projet projet;
+    private Long projetId;
     private Date createdAt;
     private Date updatedAt;
 }

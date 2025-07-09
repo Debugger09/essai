@@ -26,8 +26,8 @@ public class DepenseServiceImpl implements DepenseService {
         Depense depense = depenseMapper.toEntity(depenseDto);
 
         // Récupérer le projet complet si présent
-        if (depenseDto.getProjet() != null && depenseDto.getProjet().getId() != null) {
-            Projet projet = projetRepository.findById(depenseDto.getProjet().getId())
+        if (depenseDto.getProjetId() != null) {
+            Projet projet = projetRepository.findById(depenseDto.getProjetId())
                     .orElseThrow(() -> new EntityNotFoundException("Projet introuvable"));
             depense.setProjet(projet);
         } else {
@@ -60,8 +60,8 @@ public class DepenseServiceImpl implements DepenseService {
                     d.setLibelle(depenseDto.getLibelle());
                     d.setMontant(depenseDto.getMontant());
                     // Mettre à jour le projet
-                    if (depenseDto.getProjet() != null && depenseDto.getProjet().getId() != null) {
-                        Projet projet = projetRepository.findById(depenseDto.getProjet().getId())
+                    if (depenseDto.getProjetId() != null) {
+                        Projet projet = projetRepository.findById(depenseDto.getProjetId())
                                 .orElseThrow(() -> new EntityNotFoundException("Projet introuvable"));
                         d.setProjet(projet);
                     } else {

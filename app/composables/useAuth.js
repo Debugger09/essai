@@ -14,16 +14,25 @@ export const useAuth = () => {
   const userCookie = useCookie("user", {
     default: () => null,
     sameSite: "lax",
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: false,
   })
 
   const tokenCookie = useCookie("token", {
     default: () => null,
     sameSite: "lax",
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: false,
   })
+
+  // NEW: Fonction pour effacer les informations d'authentification sans redirection
+  const clearAuth = () => {
+    user.value = null
+    token.value = null
+    userCookie.value = null
+    tokenCookie.value = null
+    clearNuxtState(["auth.user", "auth.token"])
+  }
 
   // Définir l'authentification
   const setAuth = (newToken, newUser) => {
@@ -43,7 +52,7 @@ export const useAuth = () => {
       const response = await axios.post(`${config.public.apiBase}/auth/login`, credentials)
 
       setAuth(response.data.token, response.data.user)
-      await navigateTo("/dashboard")
+      await navigateTo("/projets")
     } catch (err) {
       error.value = err.response?.data?.message || "Email ou mot de passe incorrect."
       console.error("Login error:", err)
@@ -55,11 +64,7 @@ export const useAuth = () => {
   // Déconnexion
   const logout = async () => {
     try {
-      user.value = null
-      token.value = null
-      userCookie.value = null
-      tokenCookie.value = null
-      await clearNuxtState(["auth.user", "auth.token"])
+      clearAuth()
       await navigateTo("/login", { replace: true })
     } catch (error) {
       console.error("Erreur lors de la déconnexion:", error)
@@ -81,5 +86,6 @@ export const useAuth = () => {
     setAuth,
     login,
     logout,
+    clearAuth,
   }
 }

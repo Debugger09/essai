@@ -1,14 +1,27 @@
-import { ref } from 'vue'
-
-const users = ref([])
+import { ref, readonly } from 'vue'
+import { useState, useNuxtApp } from '#app'
 
 export function useUserInfo() {
-  const fetchUsers = async ($axios) => {
+  const { $axios } = useNuxtApp()
+  const users = useState('users.list', () => [])
+  const userInfo = useState('user.info', () => null)
+
+  const fetchUsers = async () => {
     try {
       const response = await $axios.get('/users')
       users.value = response.data
     } catch (error) {
       console.error('Erreur lors du chargement des utilisateurs:', error)
+    }
+  }
+
+  const fetchUserInfo = async () => {
+    try {
+      const response = await $axios.get('/users/me')
+      userInfo.value = response.data
+    } catch (error) {
+      console.error('Erreur lors du chargement des informations de l\'utilisateur:', error)
+      userInfo.value = null
     }
   }
 
@@ -31,8 +44,10 @@ export function useUserInfo() {
   }
 
   return {
-    users,
+    users: readonly(users),
+    userInfo: readonly(userInfo),
     fetchUsers,
+    fetchUserInfo,
     getInitials,
     getDisplayName,
     getUserEmail

@@ -58,9 +58,14 @@ public class FichierServiceImpl implements FichierService {
     }
 
     @Override
-    public List<FichierDto> getAllFichiers() {
-        return fichierRepository.findAll()
-                .stream()
+    public List<FichierDto> getAllFichiers(Long projetId) {
+        List<Fichier> fichiers;
+        if (projetId != null) {
+            fichiers = fichierRepository.findByProjetId(projetId);
+        } else {
+            fichiers = fichierRepository.findAll();
+        }
+        return fichiers.stream()
                 .map(fichierMapper::toDto)
                 .toList();
     }

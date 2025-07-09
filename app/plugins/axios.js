@@ -1,19 +1,16 @@
 import axios from 'axios'
+import { useCookie } from '#app'
+import { useAuth } from '~/composables/useAuth'
+import { navigateTo } from '#app'
 
 export default defineNuxtPlugin((nuxtApp) => {
-  const config = useRuntimeConfig()
-  
-  // Créer une instance Axios avec la configuration de base
   const axiosInstance = axios.create({
-    baseURL: config.public.apiBase,
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
-    }
+    baseURL: useRuntimeConfig().public.apiBase,
+    // ... autres options si besoin
   })
 
-  // Intercepteur pour ajouter le token d'authentification
-  axiosInstance.interceptors.request.use((config) => {
+  // Intercepteur pour ajouter le token
+  axiosInstance.interceptors.request.use(config => {
     const token = useCookie('token').value
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
@@ -21,14 +18,14 @@ export default defineNuxtPlugin((nuxtApp) => {
     return config
   })
 
-  // Intercepteur pour gérer les erreurs
+  // Intercepteur pour gérer les erreurs 401
   axiosInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        // Rediriger vers la page de connexion si le token est invalide ou expiré
-        const { logout } = useAuth()
-        logout()
+    response => response,
+    error => {
+      if (error.response && error.response.status === 401) {
+        const { clearAuth } = useAuth()
+        clearAuth()
+        navigateTo('/login')
       }
       return Promise.reject(error)
     }

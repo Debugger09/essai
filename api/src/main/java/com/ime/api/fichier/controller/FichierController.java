@@ -25,8 +25,8 @@ public class FichierController {
     }
 
     @GetMapping
-    public List<FichierDto> getAll() {
-        return fichierService.getAllFichiers();
+    public List<FichierDto> getAll(@RequestParam(required = false) Long projetId) {
+        return fichierService.getAllFichiers(projetId);
     }
 
     @PutMapping("/{id}")
