@@ -9,25 +9,12 @@
     <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
       <!-- En-tête -->
       <div class="mb-8">
-        <div class="flex items-center justify-between">
-          <div>
-            <NuxtLink 
-              to="/projets"
-              class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-4"
-            >
-              <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Retour aux projets
-            </NuxtLink>
-            <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100">
-              Mes tâches
-            </h1>
-            <p class="text-slate-600 dark:text-slate-400 mt-2">
-              Tâches assignées à {{ userInfo?.firstName }} {{ userInfo?.lastName }}
-            </p>
-          </div>
-        </div>
+        <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100">
+          {{ user.value?.role === 'ADMIN' ? 'Toutes les tâches' : 'Mes tâches' }}
+        </h1>
+        <p v-if="user.value?.role !== 'ADMIN' && userInfo" class="text-slate-600 dark:text-slate-400 mt-2">
+          Tâches assignées à {{ userInfo.firstName }} {{ userInfo.lastName }}
+        </p>
       </div>
 
       <!-- Barre de recherche et filtres -->
@@ -69,10 +56,9 @@
             class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
           >
             <option value="">Toutes les priorités</option>
-            <option value="BASSE">Basse</option>
+            <option value="FAIBLE">Faible</option>
             <option value="MOYENNE">Moyenne</option>
-            <option value="HAUTE">Haute</option>
-            <option value="URGENTE">Urgente</option>
+            <option value="ELEVEE">Élevée</option>
           </select>
           <select 
             v-model="triFilter" 
@@ -91,8 +77,8 @@
         {{ error }}
       </div>
 
-      <!-- Statistiques rapides -->
-      <div v-if="!loading && taches.length > 0" class="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Statistiques rapides (toujours sur la liste filtrée) -->
+      <div v-if="!loading && filteredAndSortedTaches.length > 0" class="mb-8 grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl p-4 border border-slate-200/50 dark:border-slate-700/50">
           <div class="flex items-center">
             <div class="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
@@ -102,7 +88,7 @@
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Total</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ taches.length }}</p>
+              <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ filteredAndSortedTaches.length }}</p>
             </div>
           </div>
         </div>
@@ -114,8 +100,8 @@
               </svg>
             </div>
             <div class="ml-4">
-              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">En attente</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ tachesEnAttente }}</p>
+              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">À faire</p>
+              <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ filteredAndSortedTaches.filter(t => t.status === 'A_FAIRE').length }}</p>
             </div>
           </div>
         </div>
@@ -128,7 +114,7 @@
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-slate-600 dark:text-slate-400">En cours</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ tachesEnCours }}</p>
+              <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ filteredAndSortedTaches.filter(t => t.status === 'EN_COURS').length }}</p>
             </div>
           </div>
         </div>
@@ -141,7 +127,7 @@
             </div>
             <div class="ml-4">
               <p class="text-sm font-medium text-slate-600 dark:text-slate-400">Terminées</p>
-              <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ tachesTerminees }}</p>
+              <p class="text-2xl font-bold text-slate-900 dark:text-slate-100">{{ filteredAndSortedTaches.filter(t => t.status === 'TERMINEE').length }}</p>
             </div>
           </div>
         </div>
@@ -165,8 +151,8 @@
                     'px-2 py-1 rounded-full text-xs font-medium',
                     {
                       'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400': tache.status === 'EN_COURS',
-                      'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400': tache.status === 'EN_ATTENTE',
-                      'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400': tache.status === 'TERMINE'
+                      'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400': tache.status === 'A_FAIRE',
+                      'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400': tache.status === 'TERMINEE'
                     }
                   ]"
                 >
@@ -176,10 +162,9 @@
                   :class="[
                     'px-2 py-1 rounded-full text-xs font-medium',
                     {
-                      'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400': tache.priorite === 'URGENTE',
-                      'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400': tache.priorite === 'HAUTE',
+                      'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400': tache.priorite === 'FAIBLE',
                       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400': tache.priorite === 'MOYENNE',
-                      'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400': tache.priorite === 'BASSE'
+                      'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400': tache.priorite === 'ELEVEE'
                     }
                   ]"
                 >
@@ -217,10 +202,11 @@
                 <div class="flex -space-x-2">
                   <div 
                     v-for="membre in tache.membres?.slice(0, 3)" 
-                    :key="membre.id"
+                    :key="membre?.id"
+                    v-if="membre"
                     class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-xs font-medium border-2 border-white dark:border-gray-800"
                   >
-                    {{ membre.user.firstName.charAt(0) }}{{ membre.user.lastName.charAt(0) }}
+                    {{ membre.firstName?.charAt(0) }}{{ membre.lastName?.charAt(0) }}
                   </div>
                   <div 
                     v-if="tache.membres && tache.membres.length > 3"
@@ -263,7 +249,7 @@
         </svg>
         <h3 class="mt-2 text-sm font-medium text-slate-900 dark:text-slate-100">Aucune tâche trouvée</h3>
         <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          {{ searchQuery || statusFilter || prioriteFilter || projetFilter ? 'Essayez de modifier vos filtres.' : 'Vous n\'avez aucune tâche assignée pour le moment.' }}
+          {{ searchQuery || statusFilter || prioriteFilter || projetFilter ? 'Essayez de modifier vos filtres.' : (user.value?.role === 'ADMIN' ? 'Aucune tâche dans le système.' : 'Vous n\'avez aucune tâche assignée pour le moment.') }}
         </p>
       </div>
     </div>
@@ -298,12 +284,17 @@ const triFilter = ref('priorite')
 // Computed
 const filteredAndSortedTaches = computed(() => {
   let filtered = taches.value
+  if (user.value?.role === 'MEMBRE_PROJET') {
+    filtered = filtered.filter(tache =>
+      Array.isArray(tache.membres) && tache.membres.some(m => m.id === user.value.id)
+    )
+  }
 
   // Filtre par recherche
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(tache => 
-      tache.titre.toLowerCase().includes(query) ||
+      tache.titre?.toLowerCase().includes(query) ||
       tache.description?.toLowerCase().includes(query) ||
       tache.projet?.name?.toLowerCase().includes(query)
     )
@@ -328,14 +319,14 @@ const filteredAndSortedTaches = computed(() => {
   filtered.sort((a, b) => {
     switch (triFilter.value) {
       case 'priorite':
-        const prioriteOrder = { 'URGENTE': 4, 'HAUTE': 3, 'MOYENNE': 2, 'BASSE': 1 }
+        const prioriteOrder = { 'ELEVEE': 4, 'MOYENNE': 3, 'FAIBLE': 1 }
         return prioriteOrder[b.priorite] - prioriteOrder[a.priorite]
       case 'delai':
         return new Date(a.dateEcheance) - new Date(b.dateEcheance)
       case 'projet':
         return (a.projet?.name || '').localeCompare(b.projet?.name || '')
       case 'statut':
-        const statutOrder = { 'EN_ATTENTE': 1, 'EN_COURS': 2, 'TERMINE': 3 }
+        const statutOrder = { 'A_FAIRE': 1, 'EN_COURS': 2, 'TERMINEE': 3 }
         return statutOrder[a.status] - statutOrder[b.status]
       default:
         return 0
@@ -350,30 +341,15 @@ const projetsUniques = computed(() => {
   return [...new Map(projets.map(projet => [projet.id, projet])).values()]
 })
 
-const tachesEnAttente = computed(() => {
-  return taches.value.filter(tache => tache.status === 'EN_ATTENTE').length
-})
-
-const tachesEnCours = computed(() => {
-  return taches.value.filter(tache => tache.status === 'EN_COURS').length
-})
-
-const tachesTerminees = computed(() => {
-  return taches.value.filter(tache => tache.status === 'TERMINE').length
-})
-
 // Méthodes
-const fetchMesTaches = async () => {
+const fetchTaches = async () => {
   try {
     loading.value = true
-    const response = await $axios.get('/taches/mes-taches')
-    taches.value = response.data
+    const res = await $axios.get('/taches')
+    taches.value = Array.isArray(res.data) ? res.data : []
   } catch (err) {
-    console.error('Erreur lors du chargement des tâches:', err)
-    error.value = err.response?.data?.message || 'Impossible de charger vos tâches.'
-    if (err.response?.status === 403) {
-      navigateTo('/login')
-    }
+    error.value = err.response?.data?.message || 'Erreur de chargement'
+    taches.value = []
   } finally {
     loading.value = false
   }
@@ -381,10 +357,9 @@ const fetchMesTaches = async () => {
 
 const formatPriorite = (priorite) => {
   const priorites = {
-    'BASSE': 'Basse',
+    'FAIBLE': 'Faible',
     'MOYENNE': 'Moyenne',
-    'HAUTE': 'Haute',
-    'URGENTE': 'Urgente'
+    'ELEVEE': 'Élevée'
   }
   return priorites[priorite] || priorite
 }
@@ -398,8 +373,8 @@ const isTacheEnRetard = (tache) => {
 
 // Initialisation
 onMounted(async () => {
+  await fetchTaches()
   await fetchUserInfo()
-  await fetchMesTaches()
 })
 </script>
 

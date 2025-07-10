@@ -22,7 +22,7 @@
       <!-- Stats Cards Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 sm:mb-12">
         <!-- Mes Tâches Card -->
-        <div class="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg hover:shadow-2xl border border-white/20 dark:border-gray-700/50 p-4 sm:p-6 lg:p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-2">
+        <div v-if="user && user.role !== 'CHEF_PROJET'" class="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg hover:shadow-2xl border border-white/20 dark:border-gray-700/50 p-4 sm:p-6 lg:p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-2">
           <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 dark:from-blue-400/10 dark:to-indigo-400/10 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
           <div class="relative z-10">
@@ -36,7 +36,7 @@
                 <h2 class="text-lg sm:text-xl font-semibold text-slate-800 dark:text-slate-100">Mes Tâches</h2>
               </div>
               <span class="bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm self-start sm:self-auto">
-                5 en cours
+                {{ mesTachesCount }} en cours
               </span>
             </div>
             
@@ -44,7 +44,7 @@
               Aperçu rapide de vos tâches assignées et leur progression.
             </p>
             
-            <NuxtLink to="/my-tasks" class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm sm:text-base group-hover:translate-x-1 transition-all duration-200">
+            <NuxtLink to="/taches" class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm sm:text-base group-hover:translate-x-1 transition-all duration-200">
               Voir toutes les tâches
               <svg class="h-4 w-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -68,7 +68,7 @@
                 <h2 class="text-lg sm:text-xl font-semibold text-slate-800 dark:text-slate-100">Projets Actifs</h2>
               </div>
               <span class="bg-gradient-to-r from-emerald-500 to-green-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm self-start sm:self-auto">
-                3 actifs
+                {{ projetsActifsCount }} actifs
               </span>
             </div>
             
@@ -76,7 +76,7 @@
               Suivez l'avancement et gérez vos projets en cours.
             </p>
             
-            <NuxtLink to="/projects" class="inline-flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium text-sm sm:text-base group-hover:translate-x-1 transition-all duration-200">
+            <NuxtLink to="/projets" class="inline-flex items-center text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium text-sm sm:text-base group-hover:translate-x-1 transition-all duration-200">
               Gérer les projets
               <svg class="h-4 w-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -87,30 +87,28 @@
 
         <!-- Nouveaux Utilisateurs Card -->
         <div v-if="hasAccess(['ADMIN'])" class="group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg hover:shadow-2xl border border-white/20 dark:border-gray-700/50 p-4 sm:p-6 lg:p-8 transition-all duration-300 hover:scale-[1.02] hover:-translate-y-2">
-          <div class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 dark:from-amber-400/10 dark:to-orange-400/10 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 dark:from-blue-400/10 dark:to-indigo-400/10 rounded-2xl sm:rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           
           <div class="relative z-10">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6">
               <div class="flex items-center space-x-3 mb-3 sm:mb-0">
-                <div class="p-2 sm:p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl sm:rounded-2xl">
-                  <svg class="h-5 w-5 sm:h-6 sm:w-6 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                <div class="p-2 sm:p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl sm:rounded-2xl">
+                  <svg class="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87M17 8a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                 </div>
-                <h2 class="text-lg sm:text-xl font-semibold text-slate-800 dark:text-slate-100">Utilisateurs</h2>
+                <h2 class="text-lg sm:text-xl font-semibold text-slate-800 dark:text-slate-100">Gérer les utilisateurs</h2>
               </div>
-              <span class="bg-gradient-to-r from-amber-500 to-orange-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm self-start sm:self-auto">
-                2 en attente
+              <span class="bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm self-start sm:self-auto">
+                {{ usersEnAttenteCount }} actifs
               </span>
             </div>
-            
             <p class="text-slate-600 dark:text-slate-300 mb-4 sm:mb-6 leading-relaxed text-sm sm:text-base">
-              Gérez les nouveaux utilisateurs et leurs permissions.
+              Gérez les utilisateurs actifs de la plateforme.
             </p>
-            
-            <NuxtLink to="/users" class="inline-flex items-center text-amber-600 dark:text-amber-400 hover:text-amber-700 dark:hover:text-amber-300 font-medium text-sm sm:text-base group-hover:translate-x-1 transition-all duration-200">
+            <NuxtLink to="/users" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow hover:bg-blue-700 transition-colors">
               Gérer les utilisateurs
-              <svg class="h-4 w-4 ml-2 transition-transform duration-200 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </NuxtLink>
@@ -118,72 +116,22 @@
         </div>
       </div>
 
-      <!-- Activités Récentes Section -->
-      <div class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl shadow-lg border border-white/20 dark:border-gray-700/50 p-4 sm:p-6 lg:p-8 transition-all duration-300">
-        <div class="flex items-center space-x-3 mb-6 sm:mb-8">
-          <div class="p-2 sm:p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl sm:rounded-2xl">
-            <svg class="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <h2 class="text-lg sm:text-xl lg:text-2xl font-semibold text-slate-800 dark:text-slate-100">Activités Récentes</h2>
-        </div>
-        
-        <div class="space-y-3 sm:space-y-4">
-          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between p-3 sm:p-4 rounded-xl bg-slate-50/50 dark:bg-gray-700/30 border border-slate-200/50 dark:border-gray-600/30 transition-all duration-200 hover:bg-slate-100/50 dark:hover:bg-gray-700/50 hover:scale-[1.01]">
-            <div class="flex items-start space-x-3 flex-1">
-              <div class="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm sm:text-base text-slate-700 dark:text-slate-200 font-medium">
-                  Tâche "Finaliser le rapport" complétée par John Doe
-                </p>
-                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 sm:hidden">il y a 5 minutes</p>
-              </div>
-            </div>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 sm:mt-0 sm:ml-4 hidden sm:block">il y a 5 minutes</p>
-          </div>
-          
-          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between p-3 sm:p-4 rounded-xl bg-slate-50/50 dark:bg-gray-700/30 border border-slate-200/50 dark:border-gray-600/30 transition-all duration-200 hover:bg-slate-100/50 dark:hover:bg-gray-700/50 hover:scale-[1.01]">
-            <div class="flex items-start space-x-3 flex-1">
-              <div class="flex-shrink-0 w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm sm:text-base text-slate-700 dark:text-slate-200 font-medium">
-                  Nouveau projet "Migration V2" créé
-                </p>
-                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 sm:hidden">il y a 1 heure</p>
-              </div>
-            </div>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 sm:mt-0 sm:ml-4 hidden sm:block">il y a 1 heure</p>
-          </div>
-          
-          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between p-3 sm:p-4 rounded-xl bg-slate-50/50 dark:bg-gray-700/30 border border-slate-200/50 dark:border-gray-600/30 transition-all duration-200 hover:bg-slate-100/50 dark:hover:bg-gray-700/50 hover:scale-[1.01]">
-            <div class="flex items-start space-x-3 flex-1">
-              <div class="flex-shrink-0 w-2 h-2 bg-amber-500 rounded-full mt-2"></div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm sm:text-base text-slate-700 dark:text-slate-200 font-medium">
-                  3 nouvelles notifications en attente
-                </p>
-                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 sm:hidden">il y a 2 heures</p>
-              </div>
-            </div>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 sm:mt-0 sm:ml-4 hidden sm:block">il y a 2 heures</p>
-          </div>
-        </div>
-      </div>
+      <!-- Fin du dashboard, suppression du bloc activités récentes -->
     </div>
   </div>
 </template>
 
 <script setup>
-import { definePageMeta } from '#imports'
+import { ref, onMounted } from 'vue'
+import { useNuxtApp } from '#app'
 import { useAuth } from '~/composables/useAuth'
 
-definePageMeta({
-  middleware: 'auth',
-  layout: 'default'
-})
-
+const { $axios } = useNuxtApp()
 const { user } = useAuth()
+
+const mesTachesCount = ref(0)
+const projetsActifsCount = ref(0)
+const usersEnAttenteCount = ref(0)
 
 const hasAccess = (requiredRoles) => {
   if (!user.value || !user.value.role) {
@@ -191,6 +139,46 @@ const hasAccess = (requiredRoles) => {
   }
   return requiredRoles.includes(user.value.role)
 }
+
+onMounted(async () => {
+  // Tâches (ADMIN : toutes EN_COURS ou A_FAIRE, autres : mes EN_COURS)
+  try {
+    let taches = []
+    if (user.value?.role === 'ADMIN') {
+      const resTaches = await $axios.get('/taches')
+      taches = Array.isArray(resTaches.data) ? resTaches.data : []
+      mesTachesCount.value = taches.filter(t => t.statutTache === 'EN_COURS' || t.statutTache === 'A_FAIRE').length
+    } else if (user.value?.role === 'MEMBRE_PROJET') {
+      const resTaches = await $axios.get('/taches')
+      taches = Array.isArray(resTaches.data) ? resTaches.data : []
+      mesTachesCount.value = taches.filter(t => t.membres && t.membres.some(m => m.id === user.value.id)).length
+    } else {
+      const resTaches = await $axios.get('/taches/mes-taches')
+      taches = Array.isArray(resTaches.data) ? resTaches.data : []
+      mesTachesCount.value = taches.filter(t => t.statutTache === 'EN_COURS').length
+    }
+  } catch (e) {
+    mesTachesCount.value = 0
+  }
+  // Projets actifs
+  try {
+    const resProjets = await $axios.get('/projets')
+    projetsActifsCount.value = Array.isArray(resProjets.data) ? resProjets.data.filter(p => p.status === 'EN_COURS').length : 0
+  } catch (e) {
+    projetsActifsCount.value = 0
+  }
+  // Utilisateurs (ADMIN : statut ACTIF, autres : en attente)
+  try {
+    const resUsers = await $axios.get('/users')
+    if (user.value?.role === 'ADMIN') {
+      usersEnAttenteCount.value = Array.isArray(resUsers.data) ? resUsers.data.filter(u => u.status === true).length : 0
+    } else {
+      usersEnAttenteCount.value = Array.isArray(resUsers.data) ? resUsers.data.filter(u => u.status === 'ATTENTE' || u.status === 'EN_ATTENTE').length : 0
+    }
+  } catch (e) {
+    usersEnAttenteCount.value = 0
+  }
+})
 </script>
 
 <style scoped>

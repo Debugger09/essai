@@ -422,13 +422,19 @@ const form = reactive({
 
 // Computed properties
 const filteredProjets = computed(() => {
-  return projets.value.filter(projet => {
+  let base = projets.value;
+  if (user.value?.role === 'CHEF_PROJET') {
+    base = base.filter(p => (p.chefProjet?.id === user.value.id) || p.status === 'ARCHIVE');
+  } else if (user.value?.role !== 'ADMIN') {
+    base = [];
+  }
+  return base.filter(projet => {
     const matchesSearch = projet.name.toLowerCase().includes(searchTerm.value.toLowerCase()) ||
-                         projet.description?.toLowerCase().includes(searchTerm.value.toLowerCase())
-    const matchesStatus = !selectedStatus.value || projet.status === selectedStatus.value
-    return matchesSearch && matchesStatus
-  })
-})
+      projet.description?.toLowerCase().includes(searchTerm.value.toLowerCase());
+    const matchesStatus = !selectedStatus.value || projet.status === selectedStatus.value;
+    return matchesSearch && matchesStatus;
+  });
+});
 
 const totalProjets = computed(() => projets.value.length)
 

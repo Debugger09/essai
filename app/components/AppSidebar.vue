@@ -52,7 +52,7 @@
           :to="link.to"
           :class="[
             'group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.01] active:scale-[0.99]',
-            $route.path === link.to
+            $route.path === link.to || $route.path.startsWith(link.to + '/')
               ? 'bg-gradient-to-r from-blue-900 to-blue-700 text-white shadow-md'
               : 'text-slate-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-blue-900'
           ]"
@@ -60,7 +60,7 @@
           <div
             :class="[
               'p-1.5 rounded-lg transition-all duration-200',
-              $route.path === link.to
+              $route.path === link.to || $route.path.startsWith(link.to + '/')
                 ? 'bg-white/20 text-white'
                 : 'bg-slate-100 text-slate-600 group-hover:bg-blue-100 group-hover:text-blue-700'
             ]"
@@ -68,7 +68,7 @@
             <component :is="link.icon" class="h-4 w-4" />
           </div>
           <span class="ml-3">{{ link.name }}</span>
-          <div v-if="$route.path === link.to" class="ml-auto w-1.5 h-1.5 bg-cyan-300 rounded-full animate-pulse" />
+          <div v-if="$route.path === link.to || $route.path.startsWith(link.to + '/')" class="ml-auto w-1.5 h-1.5 bg-cyan-300 rounded-full animate-pulse" />
         </NuxtLink>
       </nav>
     </aside>
@@ -113,11 +113,10 @@ const navigationLinks = computed(() => {
     { name: 'Dashboard', to: '/', icon: HomeIcon, roles: ['ADMIN', 'CHEF_PROJET', 'EMPLOYE'] },
     { name: 'Utilisateurs', to: '/users', icon: UsersIcon, roles: ['ADMIN'] },
     { name: 'Projets', to: '/projets', icon: FolderIcon, roles: ['ADMIN', 'CHEF_PROJET'] },
-    { name: 'Tâches', to: '/taches', icon: BriefcaseIcon, roles: ['ADMIN', 'CHEF_PROJET', 'EMPLOYE'] },
-    { name: 'Dépenses', to: '/depenses', icon: CurrencyDollarIcon, roles: ['ADMIN', 'CHEF_PROJET'] },
-    { name: 'Matériels', to: '/materiels', icon: ComputerDesktopIcon, roles: ['ADMIN', 'CHEF_PROJET', 'EMPLOYE'] },
+    { name: 'Tâches', to: '/taches', icon: BriefcaseIcon, roles: ['ADMIN', 'EMPLOYE'] },
+    { name: 'Dépenses', to: '/depenses', icon: CurrencyDollarIcon, roles: ['ADMIN'] },
+    { name: 'Matériels', to: '/materiels', icon: ComputerDesktopIcon, roles: ['ADMIN', 'EMPLOYE'] },
     { name: 'Messagerie', to: '/messagerie', icon: ChatBubbleLeftRightIcon, roles: ['ADMIN', 'CHEF_PROJET', 'EMPLOYE'] },
-    { name: 'Paramètres', to: '/parametres', icon: Cog6ToothIcon, roles: ['ADMIN', 'CHEF_PROJET', 'EMPLOYE'] },
   ].filter(link => hasAccess(link.roles))
 })
 

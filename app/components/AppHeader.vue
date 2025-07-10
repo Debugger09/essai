@@ -12,7 +12,7 @@
         >
           <NuxtLink 
             v-if="!isSidebarOpen" 
-            to="/dashboard" 
+            to="/" 
             class="flex items-center group"
           >
             <div class="w-8 h-8 bg-gradient-to-br from-blue-900 to-cyan-700 rounded-xl flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-300">
@@ -27,6 +27,7 @@
         </transition>
 
         <button
+          v-if="user && user.role !== 'MEMBRE_PROJET'"
           @click="toggleSidebar"
           :class="[
             'p-2 rounded-xl text-slate-600 hover:text-blue-900 hover:bg-blue-50 transition-all duration-200',
@@ -40,6 +41,16 @@
       </div>
 
       <div class="flex items-center">
+        <NuxtLink
+          v-if="user && user.role === 'MEMBRE_PROJET'"
+          to="/messagerie"
+          class="inline-flex items-center px-3 py-2 ml-2 text-sm font-medium rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-900 transition-all duration-200"
+        >
+          <svg class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8s-9-3.582-9-8 4.03-8 9-8 9 3.582 9 8z" />
+          </svg>
+          Messagerie
+        </NuxtLink>
         <div class="relative">
           <button
             @click="isDropdownOpen = !isDropdownOpen"

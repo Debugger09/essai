@@ -8,7 +8,7 @@
       <div class="absolute top-1/2 left-1/4 w-48 h-48 bg-blue-300/5 rounded-full blur-2xl animate-pulse delay-500" />
     </div>
 
-    <AppSidebar :is-open="isSidebarOpen" @close-sidebar="isSidebarOpen = false" class="no-print" />
+    <AppSidebar v-if="user && user.role !== 'MEMBRE_PROJET'" :is-open="isSidebarOpen" @close-sidebar="isSidebarOpen = false" class="no-print" />
 
     <div :class="['flex flex-col min-h-screen', isSidebarOpen ? 'lg:ml-72' : '']">
       <AppHeader 

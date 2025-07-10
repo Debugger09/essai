@@ -162,7 +162,8 @@
       <!-- Blocs principaux -->
       <div v-if="projet" class="grid grid-cols-1 lg:grid-cols-2 gap-8 no-print">
                 <!-- Bloc Tâches -->
-        <div id="bloc-taches" class="bg-white rounded-lg shadow">
+        <div v-if="!isUserInfoReady" class="text-center text-slate-500 py-8">Chargement des droits utilisateur...</div>
+        <div v-else id="bloc-taches" class="bg-white rounded-lg shadow">
           <div class="p-6 border-b">
             <div class="flex justify-between items-center">
               <h2 class="text-xl font-semibold">Tâches</h2>
@@ -716,11 +717,22 @@ const editForm = ref({
 
 // Méthodes de recherche
 const filteredTaches = computed(() => {
-  if (!projet.value?.taches) return []
-  if (!searchQuery.value) return projet.value.taches
-  
+  if (!projet.value?.taches || !isUserInfoReady.value) return []
+  let taches = projet.value.taches
+
+  // Filtrage par rôle strict
+  if (userInfo.value.role === 'MEMBRE_PROJET') {
+    taches = taches.filter(tache =>
+      tache.membres?.some(m => m.id === userInfo.value.id)
+    )
+  } else if (userInfo.value.role !== 'ADMIN' && userInfo.value.role !== 'CHEF_PROJET') {
+    // Les autres rôles ne voient rien
+    taches = []
+  }
+
+  if (!searchQuery.value) return taches
   const query = searchQuery.value.toLowerCase()
-  return projet.value.taches.filter(tache => 
+  return taches.filter(tache => 
     tache.libelle.toLowerCase().includes(query) ||
     tache.description.toLowerCase().includes(query)
   )
@@ -1242,6 +1254,8 @@ watch(showMaterielModal, (val) => {
     materielSelectorRef.value?.fetchMaterielsDisponibles();
   }
 });
+
+const isUserInfoReady = computed(() => !!userInfo.value && !!userInfo.value.role)
 </script>
 
 <style>
