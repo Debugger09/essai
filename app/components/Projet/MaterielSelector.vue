@@ -80,6 +80,7 @@
         <p v-if="!isQuantiteValide" class="mt-1 text-sm text-red-500">
           Quantité non disponible
         </p>
+        <p v-if="isStockZero" class="mt-1 text-sm text-red-500">Stock épuisé pour ce matériel</p>
       </div>
     </div>
 
@@ -141,9 +142,13 @@ const isQuantiteValide = computed(() => {
   return quantiteRequise.value > 0 && quantiteRequise.value <= selectedMateriel.value.quantite
 })
 
+const isStockZero = computed(() => {
+  return selectedMateriel.value && selectedMateriel.value.quantite === 0;
+});
+
 const canAdd = computed(() => {
-  return selectedMateriel.value && isQuantiteValide.value
-})
+  return selectedMateriel.value && isQuantiteValide.value && !isStockZero.value;
+});
 
 // Méthodes
 const fetchMaterielsDisponibles = async () => {
@@ -161,10 +166,10 @@ const searchMateriels = () => {
 }
 
 const selectMateriel = (materiel) => {
-  if (!materiel.reutilisable && !materiel.quantite) return
-  selectedMateriel.value = materiel
-  quantiteRequise.value = 1
-  showSuggestions.value = false
+  if (materiel.quantite === 0) return;
+  selectedMateriel.value = materiel;
+  quantiteRequise.value = 1;
+  showSuggestions.value = false;
 }
 
 const ajouterMateriel = async () => {
@@ -184,6 +189,7 @@ const ajouterMateriel = async () => {
     selectedMateriel.value = null
     quantiteRequise.value = 1
     searchQuery.value = ''
+    await fetchMaterielsDisponibles();
   } catch (error) {
     console.error('Erreur lors de l\'ajout du matériel:', error)
   }
@@ -192,5 +198,9 @@ const ajouterMateriel = async () => {
 // Initialisation
 onMounted(() => {
   fetchMaterielsDisponibles()
+})
+
+defineExpose({
+  fetchMaterielsDisponibles
 })
 </script> 

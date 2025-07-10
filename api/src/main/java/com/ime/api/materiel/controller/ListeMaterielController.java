@@ -38,4 +38,9 @@ public class ListeMaterielController {
     public void delete(@PathVariable Long id) {
         listeMaterielService.deleteListeMateriel(id);
     }
+
+    @PostMapping("/{id}/return")
+    public void returnMateriel(@PathVariable Long id) {
+        listeMaterielService.returnListeMateriel(id);
+    }
 }

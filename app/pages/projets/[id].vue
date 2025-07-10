@@ -1,5 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/30 dark:from-gray-900 dark:via-blue-950/50 dark:to-indigo-950/30 transition-all duration-500">
+  <ProjetPrint :projet="projet" ref="printComponent" />
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/30 dark:from-gray-900 dark:via-blue-950/50 dark:to-indigo-950/30 transition-all duration-500 no-print">
     <!-- Background Elements -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
       <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 dark:from-blue-600/20 dark:to-indigo-600/20 rounded-full blur-3xl animate-pulse"></div>
@@ -8,7 +9,7 @@
 
     <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
       <!-- Barre de recherche et actions -->
-      <div class="mb-8 flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div class="mb-4 flex flex-col sm:flex-row gap-4 items-center justify-between no-print">
         <div class="w-full sm:w-96">
           <div class="relative">
             <input
@@ -34,14 +35,21 @@
           </button>
         </div>
       </div>
+      <!-- Menu d'ancres -->
+      <nav class="mb-6 flex flex-wrap gap-4 justify-center no-print">
+        <a href="#bloc-taches" class="anchor-link">Tâches</a>
+        <a href="#bloc-materiel" class="anchor-link">Matériel</a>
+        <a href="#bloc-fichiers" class="anchor-link">Fichiers</a>
+        <a href="#bloc-depenses" class="anchor-link">Dépenses</a>
+      </nav>
 
       <!-- Message d'erreur -->
-      <div v-if="error" class="mb-8 p-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl">
+      <div v-if="error" class="mb-8 p-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-xl no-print">
         {{ error }}
       </div>
 
       <!-- En-tête -->
-      <div v-if="projet" class="mb-8">
+      <div v-if="projet" class="mb-8 no-print">
         <div class="flex items-center justify-between">
           <div>
             <NuxtLink 
@@ -73,6 +81,7 @@
             <button 
               @click="editProjet"
               class="inline-flex items-center px-4 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg transition-all duration-200"
+              v-if="canEdit && !isProjetLocked"
             >
               <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -84,9 +93,12 @@
       </div>
 
       <!-- Informations principales -->
-      <div v-if="projet" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+      <div v-if="projet" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 no-print">
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-xl font-semibold mb-4">Informations générales</h2>
+          <div v-if="projet?.description" class="mb-4 text-slate-700 dark:text-slate-200 text-base">
+            {{ projet.description }}
+          </div>
           <div class="space-y-4">
             <div class="flex justify-between">
               <span class="font-medium">Statut:</span>
@@ -104,16 +116,15 @@
               <span class="font-medium">Budget:</span>
               <span>{{ formatMontant(projet?.budget) }}</span>
             </div>
-            <div class="flex justify-between">
+            <div class="flex justify-between items-center">
               <span class="font-medium">Chef de projet:</span>
-              <span>
-                <template v-if="projet?.chefProjet">
+              <span v-if="projet?.chefProjet">
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 font-medium">
+                  <i class="fas fa-user-tie"></i>
                   {{ projet.chefProjet.lastName }} {{ projet.chefProjet.firstName }}
-                </template>
-                <template v-else>
-                  Non assigné
-                </template>
+                </span>
               </span>
+              <span v-else class="italic text-slate-400">Non assigné</span>
             </div>
           </div>
         </div>
@@ -121,40 +132,44 @@
         <!-- Progression et statistiques -->
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-xl font-semibold mb-4">Progression</h2>
-          <div class="space-y-4">
+          <div class="space-y-6">
+            <!-- Tâches complétées -->
             <div>
-              <div class="flex justify-between mb-2">
-                <span>Tâches complétées</span>
-                <span>{{ completionStats.taches }}%</span>
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-medium">Tâches complétées</span>
+                <span class="font-semibold text-blue-700">{{ progressionStats.taches }}%</span>
               </div>
-              <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-blue-600 h-2 rounded-full" :style="{ width: completionStats.taches + '%' }"></div>
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div class="bg-blue-600 h-3 rounded-full transition-all duration-500" :style="{ width: progressionStats.taches + '%' }"></div>
               </div>
+              <div class="text-xs text-gray-500 mt-1">{{ progressionStats.tachesCount }} sur {{ progressionStats.totalTaches }} tâches terminées</div>
             </div>
+            <!-- Budget utilisé -->
             <div>
-              <div class="flex justify-between mb-2">
-                <span>Budget utilisé</span>
-                <span>{{ completionStats.budget }}%</span>
+              <div class="flex justify-between items-center mb-1">
+                <span class="font-medium">Budget utilisé</span>
+                <span :class="budgetBarClass">{{ progressionStats.budget }}%</span>
               </div>
-              <div class="w-full bg-gray-200 rounded-full h-2">
-                <div :class="budgetBarClass" class="h-2 rounded-full" :style="{ width: completionStats.budget + '%' }"></div>
+              <div class="w-full bg-gray-200 rounded-full h-3">
+                <div :class="budgetBarClass" class="h-3 rounded-full transition-all duration-500" :style="{ width: progressionStats.budget + '%' }"></div>
               </div>
+              <div class="text-xs text-gray-500 mt-1">{{ formatMontant(progressionStats.depensesTotal) }} / {{ formatMontant(projet?.budget) }}</div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Blocs principaux -->
-      <div v-if="projet" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div v-if="projet" class="grid grid-cols-1 lg:grid-cols-2 gap-8 no-print">
                 <!-- Bloc Tâches -->
-        <div class="bg-white rounded-lg shadow">
+        <div id="bloc-taches" class="bg-white rounded-lg shadow">
           <div class="p-6 border-b">
             <div class="flex justify-between items-center">
               <h2 class="text-xl font-semibold">Tâches</h2>
               <button
                 @click="openAddTacheModal"
                 class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
-                v-if="canEdit"
+                v-if="canEdit && !isProjetLocked"
               >
                 <i class="fas fa-plus mr-2"></i>
                 Ajouter
@@ -164,40 +179,38 @@
           <div class="p-6">
             <div class="text-xs text-gray-500 mb-2">Tâches du projet : {{ projet.taches?.length || 0 }}</div>
             <template v-if="projet.taches && projet.taches.length">
-              <div class="overflow-x-auto w-full">
-                <table v-if="projet.taches && projet.taches.length" class="min-w-full max-w-full divide-y divide-gray-200 table-auto">
-                  <thead>
-                    <tr>
-                      <th class="px-2 py-2 text-left w-1/4">Libellé</th>
-                      <th class="px-2 py-2 text-left w-1/6">Statut</th>
-                      <th class="px-2 py-2 text-left w-1/6">Date d'échéance</th>
-                      <th class="px-2 py-2 text-left w-1/4">Membres assignés</th>
-                      <th class="px-2 py-2 text-left w-12">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="tache in projet.taches" :key="tache.id" class="border-b">
-                      <td class="px-2 py-2 truncate max-w-xs">{{ tache.libelle }}</td>
-                      <td class="px-2 py-2">{{ formatStatus(tache.statutTache) }}</td>
-                      <td class="px-2 py-2">{{ formatDate(tache.dateEcheance) }}</td>
-                      <td class="px-2 py-2">
-                        <span v-if="tache.membres && tache.membres.length">
-                          <span v-for="(m, idx) in tache.membres" :key="m.id">
-                            {{ m.lastName }} {{ m.firstName }}<span v-if="idx < tache.membres.length - 1">, </span>
-                          </span>
+              <div class="space-y-4">
+                <div v-for="tache in filteredTaches" :key="tache.id" class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                  <div class="flex flex-col">
+                    <span class="font-medium text-slate-900">{{ tache.libelle }}</span>
+                    <span class="text-xs text-slate-500">Échéance : {{ formatDate(tache.dateEcheance) }}</span>
+                    <span class="text-xs text-slate-500">Statut : {{ formatStatus(tache.statutTache) }}</span>
+                    <span class="text-xs text-slate-500">Membres :
+                      <template v-if="tache.membres && tache.membres.length">
+                        <span v-for="(m, idx) in tache.membres" :key="m.id">
+                          {{ m.lastName }} {{ m.firstName }}<span v-if="idx < tache.membres.length - 1">, </span>
                         </span>
-                        <span v-else>Aucun</span>
-                      </td>
-                      <td class="px-2 py-2">
-                        <button @click="openEditTacheModal(tache)" class="btn btn-sm btn-warning flex items-center justify-center p-2" title="Modifier">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                      </template>
+                      <template v-else>Aucun</template>
+                    </span>
+                  </div>
+                  <div class="flex flex-col items-end gap-2">
+                    <span :class="[
+                      'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold',
+                      tache.priorite === 'FAIBLE' ? 'bg-green-100 text-green-800' :
+                      tache.priorite === 'MOYENNE' ? 'bg-yellow-100 text-yellow-800' :
+                      tache.priorite === 'ELEVEE' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    ]">
+                      Priorité : {{ tache.priorite?.charAt(0) + tache.priorite?.slice(1).toLowerCase() }}
+                    </span>
+                    <button @click="openEditTacheModal(tache)" class="btn btn-sm btn-warning flex items-center justify-center p-2" title="Modifier">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
               </div>
             </template>
             <div v-else class="text-center text-slate-500 py-4">
@@ -207,14 +220,14 @@
         </div>
 
         <!-- Bloc Matériel -->
-        <div class="bg-white rounded-lg shadow">
+        <div id="bloc-materiel" class="bg-white rounded-lg shadow">
           <div class="p-6 border-b">
             <div class="flex justify-between items-center">
               <h2 class="text-xl font-semibold">Matériel</h2>
               <button
                 @click="showMaterielModal = true"
                 class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
-                v-if="canEdit"
+                v-if="canEdit && !isProjetLocked"
               >
                 <i class="fas fa-plus mr-2"></i>
                 Ajouter
@@ -225,19 +238,21 @@
             <MaterielList 
               :projet-id="projet.id" 
               ref="materielListRef"
+              @materiel-returned="refreshMateriels"
+              @materiel-removed="refreshMateriels"
             />
           </div>
         </div>
 
         <!-- Bloc Fichiers -->
-        <div class="bg-white rounded-lg shadow">
+        <div id="bloc-fichiers" class="bg-white rounded-lg shadow">
           <div class="p-6 border-b">
             <div class="flex justify-between items-center">
               <h2 class="text-xl font-semibold">Fichiers</h2>
               <button
                 @click="showFichierModal = true"
                 class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
-                v-if="canEdit"
+                v-if="canEdit && !isProjetLocked"
               >
                 <i class="fas fa-upload mr-2"></i>
                 Ajouter
@@ -247,7 +262,7 @@
           <div class="p-6">
             <FileManager 
               :projet-id="projet.id"
-              :fichiers="projet.fichiers"
+              :fichiers="filteredFichiers"
               :can-edit="canEdit"
               @update="refreshProjet"
             />
@@ -255,14 +270,14 @@
         </div>
 
         <!-- Bloc Dépenses -->
-        <div class="bg-white rounded-lg shadow">
+        <div id="bloc-depenses" class="bg-white rounded-lg shadow">
           <div class="p-6 border-b">
             <div class="flex justify-between items-center">
               <h2 class="text-xl font-semibold">Dépenses</h2>
               <button
                 @click="showDepenseModal = true"
                 class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
-                v-if="canEdit"
+                v-if="canEdit && !isProjetLocked"
               >
                 <i class="fas fa-plus mr-2"></i>
                 Ajouter
@@ -271,7 +286,7 @@
           </div>
           <div class="p-6">
             <div class="space-y-4">
-              <div v-for="depense in projet.depenses" :key="depense.id" class="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <div v-for="depense in filteredDepenses" :key="depense.id" class="flex justify-between items-center p-3 bg-gray-50 rounded">
                 <div>
                   <p class="font-medium">{{ depense.libelle }}</p>
                   <p class="text-sm text-slate-600">{{ formatDate(depense.createdAt) }}</p>
@@ -285,55 +300,63 @@
           </div>
         </div>
       </div>
-      <div v-else class="text-center text-slate-500 py-12">
+      <div v-else class="text-center text-slate-500 py-12 no-print">
         Chargement du projet...
       </div>
     </div>
 
-    <!-- Composant d'impression (caché en mode normal) -->
-    <ProjetPrint v-if="projet" :projet="projet" ref="printComponent" />
-
     <!-- Modals -->
-    <Modal v-model="showEditModal" title="Modifier le projet">
-      <form @submit.prevent="submitEdit" class="space-y-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Nom</label>
-          <input v-model="editForm.name" type="text" class="form-input w-full" required>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Description</label>
-          <textarea v-model="editForm.description" class="form-textarea w-full" rows="3"></textarea>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Budget</label>
-          <input v-model="editForm.budget" type="number" step="0.01" class="form-input w-full" required>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Date de début</label>
-          <input v-model="editForm.dateDebut" type="date" class="form-input w-full" required>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Date de fin</label>
-          <input v-model="editForm.dateFin" type="date" class="form-input w-full" required>
-        </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Statut</label>
-          <select v-model="editForm.status" class="form-select w-full" required>
-            <option value="EN_ATTENTE">En attente</option>
-            <option value="EN_COURS">En cours</option>
-            <option value="TERMINE">Terminé</option>
-          </select>
-        </div>
-        <div class="flex justify-end gap-4">
-          <button type="button" @click="showEditModal = false" class="btn btn-secondary">Annuler</button>
-          <button type="submit" class="btn btn-primary" :disabled="submitting">
-            {{ submitting ? 'Enregistrement...' : 'Enregistrer' }}
-          </button>
-        </div>
-      </form>
+    <Modal v-model="showEditModal" title="Modifier le projet" v-if="!isProjetLocked" class="no-print">
+      <div class="max-h-[80vh] overflow-y-auto">
+        <form @submit.prevent="submitEdit" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+          <div>
+            <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Nom</label>
+            <input v-model="editForm.name" type="text" class="form-input w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" required>
+          </div>
+          <div>
+            <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Description</label>
+            <textarea v-model="editForm.description" class="form-textarea w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" rows="3"></textarea>
+          </div>
+          <div>
+            <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Budget</label>
+            <input v-model="editForm.budget" type="number" step="0.01" class="form-input w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" required>
+          </div>
+          <div>
+            <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Date de début</label>
+            <input v-model="editForm.dateDebut" type="date" class="form-input w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" required>
+          </div>
+          <div>
+            <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Date de fin</label>
+            <input v-model="editForm.dateFin" type="date" class="form-input w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" required>
+          </div>
+          <div>
+            <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Statut</label>
+            <select v-model="editForm.status" class="form-select w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" required>
+              <option value="EN_ATTENTE">En attente</option>
+              <option value="EN_COURS">En cours</option>
+              <option value="TERMINE">Terminé</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Chef de projet</label>
+            <select v-model="editForm.chefProjetId" class="form-select w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white">
+              <option value="">-- Sélectionner --</option>
+              <option v-for="u in users.filter(u => u.role === 'CHEF_PROJET')" :key="u.id" :value="u.id">
+                {{ u.lastName }} {{ u.firstName }}
+              </option>
+            </select>
+          </div>
+          <div class="flex justify-end gap-4 pt-4">
+            <button type="button" @click="showEditModal = false" class="px-6 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition">Annuler</button>
+            <button type="submit" class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition" :disabled="submitting">
+              {{ submitting ? 'Enregistrement...' : 'Enregistrer' }}
+            </button>
+          </div>
+        </form>
+      </div>
     </Modal>
 
-    <Modal v-model="showTacheModal" title="Ajouter une tâche">
+    <Modal v-model="showTacheModal" title="Ajouter une tâche" v-if="!isProjetLocked" class="no-print">
       <form @submit.prevent="submitTache" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
         <div>
           <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Titre</label>
@@ -401,7 +424,7 @@
       </form>
     </Modal>
 
-    <Modal v-model="showDepenseModal" title="Ajouter une dépense">
+    <Modal v-model="showDepenseModal" title="Ajouter une dépense" v-if="!isProjetLocked" class="no-print">
       <form @submit.prevent="submitDepense" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
         <div>
           <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Libellé</label>
@@ -420,7 +443,7 @@
 
 
 
-    <Modal v-model="showMaterielModal" title="Ajouter du matériel">
+    <Modal v-model="showMaterielModal" title="Ajouter du matériel" v-if="!isProjetLocked" class="no-print">
       <form @submit.prevent="submitMateriel" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
         <!-- Sélection de la tâche -->
         <div>
@@ -523,7 +546,7 @@
       </form>
     </Modal>
 
-    <Modal v-model="showFichierModal" title="Ajouter un fichier">
+    <Modal v-model="showFichierModal" title="Ajouter un fichier" v-if="!isProjetLocked" class="no-print">
       <FileModal 
         v-if="projet" 
         :projet-id="projet.id"
@@ -532,7 +555,7 @@
     </Modal>
 
     <!-- Modal de modification de tâche -->
-    <Modal v-model="showEditTacheModal" title="Modifier la tâche">
+    <Modal v-model="showEditTacheModal" title="Modifier la tâche" v-if="!isProjetLocked" class="no-print">
       <form @submit.prevent="submitEditTache" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
         <div>
           <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Titre</label>
@@ -605,6 +628,15 @@ import { useUserInfo } from '~/composables/useUserInfo'
 import ProjetPrint from '~/components/Projet/ProjetPrint.vue'
 import Modal from '~/components/common/Modal.vue'
 import MaterielList from '~/components/Projet/MaterielList.vue'
+import MaterielListParTache from '~/components/Projet/MaterielListParTache.vue'
+import MaterielSelector from '~/components/Projet/MaterielSelector.vue'
+
+const materielListRef = ref(null)
+const materielSelectorRef = ref(null)
+const refreshMateriels = () => {
+  materielSelectorRef.value?.fetchMaterielsDisponibles();
+  materielListRef.value?.loadMateriels();
+}
 
 // Configuration
 const config = useRuntimeConfig()
@@ -612,7 +644,7 @@ const { $axios } = useNuxtApp()
 const route = useRoute()
 const { user } = useAuth()
 const { formatMontant, formatDate, formatStatus } = useFormatters()
-const { userInfo, fetchUserInfo } = useUserInfo()
+const { userInfo, fetchUserInfo, users, fetchUsers } = useUserInfo()
 
 // État réactif
 const projet = ref(null)
@@ -631,7 +663,6 @@ const showFileModal = ref(false)
 const selectedFile = ref(null)
 const showEditModal = ref(false)
 const submitting = ref(false)
-const materielListRef = ref(null)
 
 // Variables pour le formulaire de matériel
 const materielSearchQuery = ref('')
@@ -679,7 +710,8 @@ const editForm = ref({
   budget: 0,
   dateDebut: '',
   dateFin: '',
-  status: 'EN_COURS'
+  status: 'EN_COURS',
+  chefProjetId: null
 })
 
 // Méthodes de recherche
@@ -689,7 +721,7 @@ const filteredTaches = computed(() => {
   
   const query = searchQuery.value.toLowerCase()
   return projet.value.taches.filter(tache => 
-    tache.titre.toLowerCase().includes(query) ||
+    tache.libelle.toLowerCase().includes(query) ||
     tache.description.toLowerCase().includes(query)
   )
 })
@@ -1035,7 +1067,8 @@ const editProjet = () => {
     budget: projet.value.budget,
     dateDebut: projet.value.dateDebut ? new Date(projet.value.dateDebut).toISOString().split('T')[0] : '',
     dateFin: projet.value.dateFin ? new Date(projet.value.dateFin).toISOString().split('T')[0] : '',
-    status: projet.value.status
+    status: projet.value.status,
+    chefProjetId: projet.value.chefProjet?.id || null
   }
   showEditModal.value = true
 }
@@ -1043,11 +1076,18 @@ const editProjet = () => {
 const submitEdit = async () => {
   submitting.value = true
   try {
-    const response = await $axios.put(`/projets/${route.params.id}`, editForm.value)
-    projet.value = response.data
+    const payload = {
+      ...editForm.value,
+      chefProjet: editForm.value.chefProjetId ? { id: editForm.value.chefProjetId } : null
+    }
+    delete payload.chefProjetId
+    console.log('Payload envoyé pour modification projet:', payload)
+    await $axios.put(`/projets/${projet.value.id}`, payload)
     showEditModal.value = false
-  } catch (error) {
-    console.error('Erreur lors de la modification:', error)
+    await fetchProjet()
+  } catch (e) {
+    alert('Erreur lors de la modification du projet : ' + (e?.response?.data?.message || e.message || e))
+    console.error('Erreur lors de la modification:', e)
   } finally {
     submitting.value = false
   }
@@ -1086,6 +1126,7 @@ onMounted(async () => {
   console.log('onMounted appelé');
   await fetchProjet()
   await fetchUserInfo()
+  await fetchUsers()
   await fetchAllProjets()
   if (projet.value) {
     loadFichiers()
@@ -1119,26 +1160,41 @@ const statusClass = computed(() => {
   return classes[projet.value.status] || 'text-slate-600'
 })
 
-const budgetBarClass = computed(() => {
-  if (!projet.value) return 'bg-green-600'
-  const percentage = completionStats.value.budget
-  if (percentage > 90) return 'bg-red-600'
-  if (percentage > 70) return 'bg-yellow-600'
-  return 'bg-green-600'
-})
+// Ajout d'un computed pour savoir si le projet est verrouillé
+const isProjetLocked = computed(() => {
+  return projet.value && (projet.value.status === 'TERMINE' || projet.value.status === 'ARCHIVE');
+});
 
-const completionStats = computed(() => {
-  if (!projet.value?.taches?.length) return { taches: 0, budget: 0 }
-  const tachesCompletes = projet.value.taches.filter(t => t.status === 'TERMINE').length
-  const totalTaches = projet.value.taches.length
-  const depensesTotal = (projet.value.depenses || []).reduce((sum, d) => sum + d.montant, 0)
-  const materielTotal = (projet.value.materiels || []).reduce((sum, m) => sum + (m.prix * m.quantite), 0)
-  const totalDepense = depensesTotal + materielTotal
+// Remplacer l'ancien computed completionStats par progressionStats, et corriger le calcul
+const progressionStats = computed(() => {
+  // Tâches terminées = statut 'TERMINEE'
+  const taches = projet.value?.taches || [];
+  const tachesTerminees = taches.filter(t => t.statutTache === 'TERMINEE');
+  const totalTaches = taches.length;
+  const tachesPct = totalTaches > 0 ? Math.round((tachesTerminees.length / totalTaches) * 100) : 0;
+
+  // Dépenses totales
+  const depenses = projet.value?.depenses || [];
+  const depensesTotal = depenses.reduce((sum, d) => sum + (d.montant || 0), 0);
+  const budget = projet.value?.budget || 0;
+  const budgetPct = budget > 0 ? Math.round((depensesTotal / budget) * 100) : 0;
+
   return {
-    taches: Math.round((tachesCompletes / totalTaches) * 100),
-    budget: projet.value.budget ? Math.round((totalDepense / projet.value.budget) * 100) : 0
-  }
-})
+    taches: tachesPct,
+    tachesCount: tachesTerminees.length,
+    totalTaches,
+    budget: budgetPct,
+    depensesTotal
+  };
+});
+
+// Adapter budgetBarClass pour utiliser progressionStats
+const budgetBarClass = computed(() => {
+  const pct = progressionStats.value.budget;
+  if (pct > 90) return 'bg-red-600 text-red-700';
+  if (pct > 70) return 'bg-yellow-500 text-yellow-800';
+  return 'bg-green-600 text-green-700';
+});
 
 const refreshProjet = () => {
   fetchProjet()
@@ -1180,6 +1236,12 @@ const submitEditTache = async () => {
     console.error('Erreur lors de la modification de la tâche:', error)
   }
 }
+
+watch(showMaterielModal, (val) => {
+  if (val) {
+    materielSelectorRef.value?.fetchMaterielsDisponibles();
+  }
+});
 </script>
 
 <style>
@@ -1225,5 +1287,15 @@ const submitEditTache = async () => {
   .rounded-lg {
     border-radius: 0 !important;
   }
+}
+.anchor-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s, text-decoration 0.2s;
+}
+.anchor-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }
 </style> 

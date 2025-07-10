@@ -11,14 +11,19 @@ import com.ime.api.tache.model.Tache;
 import com.ime.api.tache.repository.TacheRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class ListeMaterielServiceImpl implements ListeMaterielService {
 
+    private static final Logger log = LoggerFactory.getLogger(ListeMaterielServiceImpl.class);
     private final ListeMaterielRepository listeMaterielRepository;
     private final ListeMaterielMapper listeMaterielMapper;
     private final MaterielRepository materielRepository;
@@ -29,12 +34,13 @@ public class ListeMaterielServiceImpl implements ListeMaterielService {
         ListeMateriel entity = listeMaterielMapper.toEntity(dto);
 
         // Récupérer le matériel complet
+        Materiel materiel = null;
         if (dto.getMaterielId() != null) {
-            Materiel materiel = materielRepository.findById(dto.getMaterielId())
+            materiel = materielRepository.findById(dto.getMaterielId())
                     .orElseThrow(() -> new EntityNotFoundException("Matériel introuvable"));
             entity.setMateriel(materiel);
         } else if (dto.getMateriel() != null && dto.getMateriel().getId() != null) {
-            Materiel materiel = materielRepository.findById(dto.getMateriel().getId())
+            materiel = materielRepository.findById(dto.getMateriel().getId())
                     .orElseThrow(() -> new EntityNotFoundException("Matériel introuvable"));
             entity.setMateriel(materiel);
         } else {
@@ -55,6 +61,18 @@ public class ListeMaterielServiceImpl implements ListeMaterielService {
         }
 
         entity.setQuantite(dto.getQuantite());
+
+        // Gestion du stock : décrémenter la quantité disponible
+        if (materiel != null && dto.getQuantite() != null) {
+            if (materiel.getQuantite() == null || materiel.getQuantite() < dto.getQuantite()) {
+                log.warn("Tentative d'assignation avec stock insuffisant pour le matériel {} (stock: {}, demandé: {})", materiel.getId(), materiel.getQuantite(), dto.getQuantite());
+                throw new IllegalArgumentException("Stock insuffisant pour ce matériel");
+            }
+            materiel.setQuantite(materiel.getQuantite() - dto.getQuantite());
+            materielRepository.save(materiel);
+            log.info("Matériel {} assigné à une tâche. Stock restant: {}", materiel.getId(), materiel.getQuantite());
+        }
+
         ListeMateriel saved = listeMaterielRepository.save(entity);
         return listeMaterielMapper.toDto(saved);
     }
@@ -104,5 +122,19 @@ public class ListeMaterielServiceImpl implements ListeMaterielService {
     @Override
     public void deleteListeMateriel(Long id) {
         listeMaterielRepository.deleteById(id);
+    }
+
+    // Méthode de restitution de matériel réutilisable
+    public void returnListeMateriel(Long id) {
+        ListeMateriel entity = listeMaterielRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("ListeMateriel introuvable avec l'id : " + id));
+        Materiel materiel = entity.getMateriel();
+        if (materiel != null && materiel.isReutilisable() && entity.getQuantite() != null) {
+            materiel.setQuantite((materiel.getQuantite() == null ? 0 : materiel.getQuantite()) + entity.getQuantite());
+            materielRepository.save(materiel);
+            log.info("Matériel {} restitué. Nouveau stock: {}", materiel.getId(), materiel.getQuantite());
+        }
+        listeMaterielRepository.deleteById(id);
+        log.info("Affectation ListeMateriel {} supprimée.", id);
     }
 }

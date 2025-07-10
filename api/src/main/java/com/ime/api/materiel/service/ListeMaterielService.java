@@ -9,4 +9,5 @@ public interface ListeMaterielService {
     List<ListeMaterielDto> getAllListeMateriels();
     ListeMaterielDto updateListeMateriel(Long id, ListeMaterielDto dto);
     void deleteListeMateriel(Long id);
+    void returnListeMateriel(Long id);
 }

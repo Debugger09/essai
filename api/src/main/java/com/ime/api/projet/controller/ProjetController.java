@@ -12,6 +12,7 @@ import com.ime.api.tache.model.ListeMembre;
 import com.ime.api.tache.repository.ListeMembreRepository;
 import com.ime.api.projet.repository.ProjetRepository;
 import com.ime.api.user.mapper.UserMapper;
+import com.ime.api.materiel.dto.ListeMaterielDto;
 
 @RestController
 @RequestMapping("/api/projets")
@@ -51,6 +52,11 @@ public class ProjetController {
             .map(userMapper::toDto)
             .toList();
         return membres;
+    }
+
+    @GetMapping("/{id}/materiels")
+    public List<ListeMaterielDto> getMaterielsByProjet(@PathVariable Long id) {
+        return projetService.getMaterielsByProjet(id);
     }
 
     @PutMapping("/{id}")

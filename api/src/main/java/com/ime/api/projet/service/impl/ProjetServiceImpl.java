@@ -8,6 +8,12 @@ import com.ime.api.projet.service.ProjetService;
 import com.ime.api.user.model.User;
 import com.ime.api.user.repository.UserRepository;
 import com.ime.api.tache.service.impl.TacheServiceImpl;
+import com.ime.api.materiel.dto.ListeMaterielDto;
+import com.ime.api.materiel.model.ListeMateriel;
+import com.ime.api.materiel.repository.ListeMaterielRepository;
+import com.ime.api.materiel.mapper.ListeMaterielMapper;
+import com.ime.api.tache.model.Tache;
+import com.ime.api.tache.repository.TacheRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +28,9 @@ public class ProjetServiceImpl implements ProjetService {
     private final ProjetMapper projetMapper;
     private final UserRepository userRepository;
     private final TacheServiceImpl tacheServiceImpl;
+    private final TacheRepository tacheRepository;
+    private final ListeMaterielRepository listeMaterielRepository;
+    private final ListeMaterielMapper listeMaterielMapper;
 
     @Override
     public ProjetDto createProjet(ProjetDto projetDto) {
@@ -109,5 +118,18 @@ public class ProjetServiceImpl implements ProjetService {
     @Override
     public void deleteProjet(Long id) {
         projetRepository.deleteById(id);
+    }
+
+    @Override
+    public List<ListeMaterielDto> getMaterielsByProjet(Long projetId) {
+        // Récupérer toutes les tâches du projet
+        List<Tache> taches = tacheRepository.findAll().stream()
+            .filter(t -> t.getProjet() != null && t.getProjet().getId().equals(projetId))
+            .toList();
+        // Récupérer tous les matériels liés à ces tâches
+        List<ListeMateriel> materiels = listeMaterielRepository.findAll().stream()
+            .filter(lm -> lm.getTache() != null && taches.stream().anyMatch(t -> t.getId().equals(lm.getTache().getId())))
+            .toList();
+        return materiels.stream().map(listeMaterielMapper::toDto).toList();
     }
 }

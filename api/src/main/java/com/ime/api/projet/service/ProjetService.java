@@ -1,6 +1,7 @@
 package com.ime.api.projet.service;
 
 import com.ime.api.projet.dto.ProjetDto;
+import com.ime.api.materiel.dto.ListeMaterielDto;
 import java.util.List;
 
 public interface ProjetService {
@@ -9,4 +10,5 @@ public interface ProjetService {
     List<ProjetDto> getAllProjets();
     ProjetDto updateProjet(Long id, ProjetDto projetDto);
     void deleteProjet(Long id);
+    List<ListeMaterielDto> getMaterielsByProjet(Long projetId);
 }

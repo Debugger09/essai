@@ -2,8 +2,9 @@ package com.ime.api.materiel.dto;
 
 import java.util.Date;
 
-import com.ime.api.materiel.model.Materiel;
-import com.ime.api.tache.model.Tache;
+
+import com.ime.api.tache.dto.TacheDto;
+
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,8 +14,8 @@ import lombok.Setter;
 public class ListeMaterielDto {
     private Long id;
     private Double quantite;
-    private Tache tache;
-    private Materiel materiel;
+    private TacheDto tache;
+    private MaterielDto materiel;
     private Date createdAt;
     // Ajout des IDs pour la création depuis le frontend
     private Long materielId;

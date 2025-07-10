@@ -8,12 +8,13 @@
       <div class="absolute top-1/2 left-1/4 w-48 h-48 bg-blue-300/5 rounded-full blur-2xl animate-pulse delay-500" />
     </div>
 
-    <AppSidebar :is-open="isSidebarOpen" @close-sidebar="isSidebarOpen = false" />
+    <AppSidebar :is-open="isSidebarOpen" @close-sidebar="isSidebarOpen = false" class="no-print" />
 
     <div :class="['flex flex-col min-h-screen', isSidebarOpen ? 'lg:ml-72' : '']">
       <AppHeader 
         :is-sidebar-open="isSidebarOpen" 
         @toggle-sidebar="isSidebarOpen = !isSidebarOpen" 
+        class="no-print"
       />
 
       <main class="flex-1 relative z-10">
@@ -22,7 +23,7 @@
         </div>
       </main>
 
-      <AppFooter />
+      <AppFooter class="no-print" />
     </div>
   </div>
 </template>
