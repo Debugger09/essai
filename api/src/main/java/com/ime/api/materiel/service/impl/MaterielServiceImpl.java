@@ -41,6 +41,14 @@ public class MaterielServiceImpl implements MaterielService {
     }
 
     @Override
+    public List<MaterielDto> getMaterielsDisponibles() {
+        return materielRepository.findByActifTrue()
+                .stream()
+                .map(materielMapper::toDto)
+                .toList();
+    }
+
+    @Override
     public MaterielDto updateMateriel(Long id, MaterielDto materielDto) {
         Materiel materiel = materielRepository.findById(id)
                 .map(m -> {

@@ -12,15 +12,18 @@
       >
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="font-medium text-slate-900 dark:text-slate-100">{{ materiel.libelle }}</h3>
+            <h3 class="font-medium text-slate-900 dark:text-slate-100">{{ materiel.materiel?.libelle || materiel.libelle }}</h3>
             <div class="mt-1 flex items-center space-x-4 text-sm text-slate-600 dark:text-slate-400">
               <span>{{ materiel.quantite }} unité(s)</span>
-              <span>{{ formatMontant(materiel.prix) }}</span>
+              <span v-if="materiel.materiel?.prix">{{ formatMontant(materiel.materiel.prix) }}</span>
+              <span v-if="materiel.tache" class="text-blue-600 dark:text-blue-400">
+                Tâche: {{ materiel.tache.titre }}
+              </span>
             </div>
           </div>
           <div class="flex items-center space-x-2">
             <button 
-              v-if="materiel.reutilisable"
+              v-if="materiel.materiel?.reutilisable || materiel.reutilisable"
               @click="returnMateriel(materiel)"
               class="p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
               title="Retourner le matériel"
@@ -66,7 +69,11 @@ const { formatMontant } = useFormatters()
 const props = defineProps({
   projetId: {
     type: String,
-    required: true
+    required: false
+  },
+  tacheId: {
+    type: String,
+    required: false
   }
 })
 
@@ -78,7 +85,15 @@ const materiels = ref([])
 // Méthodes
 const loadMateriels = async () => {
   try {
-    const response = await $axios.get(`/projets/${props.projetId}/materiels`)
+    let response
+    if (props.tacheId) {
+      response = await $axios.get(`/taches/${props.tacheId}/materiels`)
+    } else if (props.projetId) {
+      response = await $axios.get(`/projets/${props.projetId}/materiels`)
+    } else {
+      console.error('Aucun ID de projet ou de tâche fourni')
+      return
+    }
     materiels.value = response.data
   } catch (error) {
     console.error('Erreur lors du chargement des matériels:', error)
@@ -86,7 +101,7 @@ const loadMateriels = async () => {
 }
 
 const returnMateriel = async (materiel) => {
-  if (!confirm(`Êtes-vous sûr de vouloir retourner le matériel "${materiel.libelle}" ?`)) return
+  if (!confirm(`Êtes-vous sûr de vouloir retourner le matériel "${materiel.materiel?.libelle || materiel.libelle}" ?`)) return
 
   try {
     await $axios.post(`/listemateriels/${materiel.id}/return`)
@@ -98,7 +113,7 @@ const returnMateriel = async (materiel) => {
 }
 
 const removeMateriel = async (materiel) => {
-  if (!confirm(`Êtes-vous sûr de vouloir supprimer le matériel "${materiel.libelle}" ?`)) return
+  if (!confirm(`Êtes-vous sûr de vouloir supprimer le matériel "${materiel.materiel?.libelle || materiel.libelle}" ?`)) return
 
   try {
     await $axios.delete(`/listemateriels/${materiel.id}`)
@@ -108,6 +123,11 @@ const removeMateriel = async (materiel) => {
     console.error('Erreur lors de la suppression:', error)
   }
 }
+
+// Exposer la méthode pour le refresh
+defineExpose({
+  loadMateriels
+})
 
 // Initialisation
 onMounted(() => {

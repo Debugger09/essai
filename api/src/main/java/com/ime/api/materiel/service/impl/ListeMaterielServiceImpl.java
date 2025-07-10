@@ -29,7 +29,11 @@ public class ListeMaterielServiceImpl implements ListeMaterielService {
         ListeMateriel entity = listeMaterielMapper.toEntity(dto);
 
         // Récupérer le matériel complet
-        if (dto.getMateriel() != null && dto.getMateriel().getId() != null) {
+        if (dto.getMaterielId() != null) {
+            Materiel materiel = materielRepository.findById(dto.getMaterielId())
+                    .orElseThrow(() -> new EntityNotFoundException("Matériel introuvable"));
+            entity.setMateriel(materiel);
+        } else if (dto.getMateriel() != null && dto.getMateriel().getId() != null) {
             Materiel materiel = materielRepository.findById(dto.getMateriel().getId())
                     .orElseThrow(() -> new EntityNotFoundException("Matériel introuvable"));
             entity.setMateriel(materiel);
@@ -38,7 +42,11 @@ public class ListeMaterielServiceImpl implements ListeMaterielService {
         }
 
         // Récupérer la tâche complète
-        if (dto.getTache() != null && dto.getTache().getId() != null) {
+        if (dto.getTacheId() != null) {
+            Tache tache = tacheRepository.findById(dto.getTacheId())
+                    .orElseThrow(() -> new EntityNotFoundException("Tâche introuvable"));
+            entity.setTache(tache);
+        } else if (dto.getTache() != null && dto.getTache().getId() != null) {
             Tache tache = tacheRepository.findById(dto.getTache().getId())
                     .orElseThrow(() -> new EntityNotFoundException("Tâche introuvable"));
             entity.setTache(tache);
@@ -46,6 +54,7 @@ public class ListeMaterielServiceImpl implements ListeMaterielService {
             entity.setTache(null);
         }
 
+        entity.setQuantite(dto.getQuantite());
         ListeMateriel saved = listeMaterielRepository.save(entity);
         return listeMaterielMapper.toDto(saved);
     }

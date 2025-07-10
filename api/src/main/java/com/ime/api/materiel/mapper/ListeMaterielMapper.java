@@ -6,6 +6,9 @@ import org.mapstruct.*;
 
 @Mapper(componentModel = "spring")
 public interface ListeMaterielMapper {
+    @Mapping(target = "materielId", ignore = true)
+    @Mapping(target = "tacheId", ignore = true)
     ListeMaterielDto toDto(ListeMateriel entity);
+    
     ListeMateriel toEntity(ListeMaterielDto dto);
 }

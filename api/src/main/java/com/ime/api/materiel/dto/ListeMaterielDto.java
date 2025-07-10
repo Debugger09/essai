@@ -16,4 +16,7 @@ public class ListeMaterielDto {
     private Tache tache;
     private Materiel materiel;
     private Date createdAt;
+    // Ajout des IDs pour la création depuis le frontend
+    private Long materielId;
+    private Long tacheId;
 }

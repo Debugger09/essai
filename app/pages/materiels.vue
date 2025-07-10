@@ -19,6 +19,15 @@
                 Gérez votre inventaire de matériels et équipements
               </p>
             </div>
+            <button
+              @click="openAddModal"
+              class="group relative bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center space-x-2"
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Ajouter un matériel</span>
+            </button>
           </div>
         </div>
 
@@ -158,7 +167,16 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
               </button>
-              
+              <button 
+                v-if="mouvementsForMateriel(item.id).length > 0"
+                @click="restituerMateriel(mouvementsForMateriel(item.id)[0].id)"
+                class="p-2 text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-all duration-200"
+                title="Restituer"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v16m16-8H4" />
+                </svg>
+              </button>
               <button 
                 @click="editMateriel(item)"
                 class="p-2 text-amber-600 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-all duration-200"
@@ -168,7 +186,6 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
               </button>
-              
               <button 
                 @click="deleteMateriel(item)"
                 :disabled="deleting === item.id"
@@ -185,7 +202,7 @@
 
         <!-- Modal -->
         <Modal
-          :show="showModal"
+          v-model="showModal"
           :title="isEditing ? 'Modifier le matériel' : 'Ajouter un matériel'"
           :loading="submitting"
           :disabled="!isFormValid"
@@ -299,11 +316,44 @@
                 <p class="text-sm text-red-600 dark:text-red-400">{{ submitError }}</p>
               </div>
             </div>
+            <div class="flex justify-end gap-4 pt-4">
+              <button
+                type="button"
+                @click="closeModal"
+                class="px-6 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                :disabled="submitting || !isFormValid"
+                class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+              >
+                {{ isEditing ? 'Modifier' : 'Ajouter' }}
+              </button>
+            </div>
           </form>
         </Modal>
       </div>
     </div>
   </div>
+
+  <!-- Modal de détails matériel -->
+  <Modal v-model="showDetailsModal" title="Détails du matériel">
+    <div v-if="selectedMateriel">
+      <h2 class="text-lg font-bold mb-2">{{ selectedMateriel.libelle }}</h2>
+      <p>Quantité : {{ selectedMateriel.quantite }}</p>
+      <p>Réutilisable : {{ selectedMateriel.reutilisable ? 'Oui' : 'Non' }}</p>
+      <p>Actif : {{ selectedMateriel.actif ? 'Oui' : 'Non' }}</p>
+      <h3 class="mt-4 font-semibold">Mouvements</h3>
+      <ul>
+        <li v-for="m in mouvementsForMateriel(selectedMateriel.id)" :key="m.id">
+          Projet : {{ m.tache?.projet?.name || 'N/A' }}, Tâche : {{ m.tache?.titre || 'N/A' }}, Quantité : {{ m.quantite }}, Date : {{ m.createdAt ? (new Date(m.createdAt)).toLocaleString() : '' }}
+        </li>
+        <li v-if="mouvementsForMateriel(selectedMateriel.id).length === 0">Aucun mouvement</li>
+      </ul>
+    </div>
+  </Modal>
 </template>
 
 <script setup>
@@ -414,6 +464,7 @@ const openAddModal = () => {
   resetForm()
   isEditing.value = false
   showModal.value = true
+  console.log('openAddModal')
 }
 
 const openEditModal = (materiel) => {
@@ -498,7 +549,8 @@ const submitForm = async () => {
 
 // Méthodes d'action
 const viewMateriel = (materiel) => {
-  navigateTo(`/materiels/${materiel.id}`)
+  selectedMateriel.value = materiel
+  showDetailsModal.value = true
 }
 
 const editMateriel = (materiel) => {
@@ -539,9 +591,40 @@ const previousPage = () => {
   }
 }
 
+// --- Ajout gestion mouvements et modal détails ---
+const mouvements = ref([])
+const selectedMateriel = ref(null)
+const showDetailsModal = ref(false)
+
+const loadMouvements = async () => {
+  try {
+    const response = await $axios.get('/listemateriels')
+    mouvements.value = response.data || []
+  } catch (error) {
+    console.error('Erreur lors du chargement des mouvements:', error)
+    mouvements.value = []
+  }
+}
+
+const mouvementsForMateriel = (materielId) => {
+  return mouvements.value.filter(m => m.materiel?.id === materielId)
+}
+
+const restituerMateriel = async (mouvementId) => {
+  if (!confirm('Restituer ce matériel ?')) return
+  try {
+    await $axios.delete(`/listemateriels/${mouvementId}`)
+    await loadMouvements()
+    await loadMateriels()
+  } catch (error) {
+    console.error('Erreur lors de la restitution:', error)
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   loadMateriels()
+  loadMouvements()
 })
 
 // Métadonnées de la page

@@ -7,6 +7,11 @@ import com.ime.api.tache.repository.TacheRepository;
 import com.ime.api.tache.service.TacheService;
 import com.ime.api.projet.model.Projet;
 import com.ime.api.projet.repository.ProjetRepository;
+import com.ime.api.tache.repository.ListeMembreRepository;
+import com.ime.api.user.mapper.UserMapper;
+import com.ime.api.user.dto.UserDTO;
+import com.ime.api.tache.model.ListeMembre;
+import com.ime.api.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +25,33 @@ public class TacheServiceImpl implements TacheService {
     private final TacheRepository tacheRepository;
     private final TacheMapper tacheMapper;
     private final ProjetRepository projetRepository;
+    private final ListeMembreRepository listeMembreRepository;
+    private final UserMapper userMapper;
+    private final UserRepository userRepository;
+
+    public void enrichirMembres(Tache tache, TacheDto dto) {
+        List<ListeMembre> membres = listeMembreRepository.findByTacheId(tache.getId());
+        List<UserDTO> membresDto = membres.stream()
+            .map(lm -> userMapper.toDto(lm.getMembre()))
+            .toList();
+        dto.setMembres(membresDto);
+    }
+
+    private void assignerMembres(Tache tache, List<Long> membresIds) {
+        // Supprimer les anciennes associations
+        listeMembreRepository.findByTacheId(tache.getId()).forEach(lm -> listeMembreRepository.deleteById(lm.getId()));
+        // Créer les nouvelles associations
+        if (membresIds != null) {
+            for (Long membreId : membresIds) {
+                userRepository.findById(membreId).ifPresent(user -> {
+                    ListeMembre lm = new ListeMembre();
+                    lm.setTache(tache);
+                    lm.setMembre(user);
+                    listeMembreRepository.save(lm);
+                });
+            }
+        }
+    }
 
     @Override
     public TacheDto createTache(TacheDto tacheDto) {
@@ -35,21 +67,31 @@ public class TacheServiceImpl implements TacheService {
         }
 
         Tache savedTache = tacheRepository.save(tache);
-        return tacheMapper.toDto(savedTache);
+        // Assigner les membres
+        assignerMembres(savedTache, tacheDto.getMembresIds());
+        TacheDto dto = tacheMapper.toDto(savedTache);
+        enrichirMembres(savedTache, dto);
+        return dto;
     }
 
     @Override
     public TacheDto getTacheById(Long id) {
         Tache tache = tacheRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Tâche introuvable avec l'id : " + id));
-        return tacheMapper.toDto(tache);
+        TacheDto dto = tacheMapper.toDto(tache);
+        enrichirMembres(tache, dto);
+        return dto;
     }
 
     @Override
     public List<TacheDto> getAllTaches() {
         return tacheRepository.findAll()
                 .stream()
-                .map(tacheMapper::toDto)
+                .map(tache -> {
+                    TacheDto dto = tacheMapper.toDto(tache);
+                    enrichirMembres(tache, dto);
+                    return dto;
+                })
                 .toList();
     }
 
@@ -73,7 +115,11 @@ public class TacheServiceImpl implements TacheService {
                     return tacheRepository.save(t);
                 })
                 .orElseThrow(() -> new EntityNotFoundException("Tâche introuvable avec l'id : " + id));
-        return tacheMapper.toDto(tache);
+        // Assigner les membres
+        assignerMembres(tache, tacheDto.getMembresIds());
+        TacheDto dto = tacheMapper.toDto(tache);
+        enrichirMembres(tache, dto);
+        return dto;
     }
 
     @Override

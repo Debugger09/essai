@@ -22,15 +22,34 @@
               class="px-4 py-2 hover:bg-slate-50 dark:hover:bg-gray-700 cursor-pointer"
               :class="{ 'opacity-50 cursor-not-allowed': !materiel.reutilisable && !materiel.quantite }">
               <div class="flex justify-between items-center">
-                <span>{{ materiel.libelle }}</span>
-                <span class="text-sm text-slate-500">
-                  {{ materiel.quantite }} disponible(s)
+                <span>
+                  {{ materiel.libelle }}
+                  <span class="text-xs text-slate-400 ml-2">
+                    ({{ materiel.quantite }} dispo{{ materiel.reutilisable ? ', réutilisable' : '' }})
+                  </span>
                 </span>
               </div>
             </li>
           </ul>
         </div>
       </div>
+    </div>
+
+    <!-- Ajoute ce bloc juste après le champ de recherche -->
+    <div class="mt-2">
+      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+        Ou choisir dans la liste
+      </label>
+      <select
+        v-model="selectedMaterielId"
+        @change="handleSelectMateriel"
+        class="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="">-- Sélectionner un matériel --</option>
+        <option v-for="m in materiels" :key="m.id" :value="m.id">
+          {{ m.libelle }} ({{ m.quantite }} dispo{{ m.reutilisable ? ', réutilisable' : '' }})
+        </option>
+      </select>
     </div>
 
     <!-- Formulaire pour le matériel sélectionné -->
@@ -78,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRuntimeConfig } from '#app'
 import { useNuxtApp } from '#app'
 
@@ -100,6 +119,14 @@ const materiels = ref([])
 const showSuggestions = ref(false)
 const selectedMateriel = ref(null)
 const quantiteRequise = ref(1)
+const selectedMaterielId = ref('')
+
+const handleSelectMateriel = () => {
+  const mat = materiels.value.find(m => m.id == selectedMaterielId.value)
+  if (mat) {
+    selectMateriel(mat)
+  }
+}
 
 // Computed properties
 const filteredMateriels = computed(() => {
@@ -119,16 +146,18 @@ const canAdd = computed(() => {
 })
 
 // Méthodes
-const searchMateriels = async () => {
-  showSuggestions.value = true
+const fetchMaterielsDisponibles = async () => {
   try {
-    const response = await $axios.get('/materiels', {
-      params: { search: searchQuery.value }
-    })
+    const response = await $axios.get('/materiels/disponibles')
     materiels.value = response.data
   } catch (error) {
-    console.error('Erreur lors de la recherche des matériels:', error)
+    console.error('Erreur lors du chargement des matériels disponibles:', error)
   }
+}
+
+const searchMateriels = () => {
+  showSuggestions.value = true
+  // La recherche se fait côté frontend via filteredMateriels
 }
 
 const selectMateriel = (materiel) => {
@@ -162,6 +191,6 @@ const ajouterMateriel = async () => {
 
 // Initialisation
 onMounted(() => {
-  searchMateriels()
+  fetchMaterielsDisponibles()
 })
 </script> 

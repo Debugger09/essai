@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
+import com.ime.api.user.dto.UserDTO;
 
 @Getter
 @Setter
@@ -20,4 +22,6 @@ public class TacheDto {
     private Long projetId;
     private Date createdAt;
     private Date updatedAt;
+    private List<UserDTO> membres;
+    private List<Long> membresIds;
 }

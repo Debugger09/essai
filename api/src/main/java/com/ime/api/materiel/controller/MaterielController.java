@@ -29,6 +29,11 @@ public class MaterielController {
         return materielService.getAllMateriels();
     }
 
+    @GetMapping("/disponibles")
+    public List<MaterielDto> getDisponibles() {
+        return materielService.getMaterielsDisponibles();
+    }
+
     @PutMapping("/{id}")
     public MaterielDto update(@PathVariable Long id, @RequestBody MaterielDto dto) {
         return materielService.updateMateriel(id, dto);
