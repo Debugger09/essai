@@ -101,7 +101,7 @@
 
               <div class="py-2">
                 <NuxtLink
-                  to="/profile"
+                  to="/profil"
                   class="flex items-center px-4 py-2 text-sm text-slate-700 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-blue-900 transition-all duration-200"
                   @click="isDropdownOpen = false"
                 >

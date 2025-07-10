@@ -138,7 +138,7 @@
         <div 
           v-for="tache in filteredAndSortedTaches" 
           :key="tache.id"
-          class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/50 dark:border-slate-700/50"
+          class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-slate-200/50 dark:border-gray-700/50 relative"
         >
           <div class="p-6">
             <div class="flex items-start justify-between mb-4">
@@ -162,9 +162,9 @@
                   :class="[
                     'px-2 py-1 rounded-full text-xs font-medium',
                     {
-                      'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400': tache.priorite === 'FAIBLE',
+                      'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400': tache.priorite === 'ELEVEE',
                       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400': tache.priorite === 'MOYENNE',
-                      'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400': tache.priorite === 'ELEVEE'
+                      'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400': tache.priorite === 'FAIBLE'
                     }
                   ]"
                 >
@@ -183,7 +183,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
                 <span class="font-medium">Projet:</span>
-                <span class="ml-1">{{ tache.projet?.name || 'Non assigné' }}</span>
+                <span class="ml-1">{{ tache.projet?.libelle || tache.projet?.name || 'Non assigné' }}</span>
               </div>
               
               <div class="flex items-center text-sm text-slate-500 dark:text-slate-400">
@@ -197,7 +197,7 @@
               </div>
             </div>
             
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between mt-4">
               <div class="flex items-center space-x-2">
                 <div class="flex -space-x-2">
                   <div 
@@ -226,6 +226,27 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                 </svg>
               </NuxtLink>
+            </div>
+            <!-- Boutons pour membre projet -->
+            <div v-if="user.value?.role === 'MEMBRE_PROJET' && Array.isArray(tache.membres) && tache.membres.some(m => m.id === user.value.id) && tache.status !== 'TERMINEE'" class="mt-4 flex gap-2">
+              <button
+                v-if="tache.status === 'A_FAIRE'"
+                @click="changerStatutTache(tache, 'EN_COURS')"
+                :disabled="tache._statutLoading"
+                class="px-4 py-2 rounded bg-yellow-400 text-white font-semibold shadow hover:bg-yellow-500 transition disabled:opacity-50"
+              >
+                Commencer
+              </button>
+              <button
+                v-else-if="tache.status === 'EN_COURS'"
+                @click="changerStatutTache(tache, 'TERMINEE')"
+                :disabled="tache._statutLoading"
+                class="px-4 py-2 rounded bg-green-600 text-white font-semibold shadow hover:bg-green-700 transition disabled:opacity-50"
+              >
+                Terminer
+              </button>
+              <span v-if="tache._statutSuccess" class="ml-2 text-green-600">Statut mis à jour !</span>
+              <span v-if="tache._statutError" class="ml-2 text-red-600">Erreur : {{ tache._statutError }}</span>
             </div>
           </div>
         </div>
@@ -332,7 +353,6 @@ const filteredAndSortedTaches = computed(() => {
         return 0
     }
   })
-
   return filtered
 })
 
@@ -369,6 +389,25 @@ const isTacheEnRetard = (tache) => {
   const aujourdHui = new Date()
   const echeance = new Date(tache.dateEcheance)
   return echeance < aujourdHui
+}
+
+const changerStatutTache = async (tache, nouveauStatut) => {
+  tache._statutLoading = true
+  tache._statutSuccess = false
+  tache._statutError = ''
+  try {
+    await $axios.put(`/taches/${tache.id}`, {
+      ...tache,
+      statutTache: nouveauStatut
+    })
+    tache.status = nouveauStatut
+    tache._statutSuccess = true
+    setTimeout(() => { tache._statutSuccess = false }, 2000)
+  } catch (e) {
+    tache._statutError = e.response?.data?.message || 'Erreur lors de la mise à jour.'
+  } finally {
+    tache._statutLoading = false
+  }
 }
 
 // Initialisation

@@ -34,30 +34,42 @@
         <div class="flex items-center justify-between">
           <div>
             <NuxtLink 
-              to="/projets"
-              class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-4"
+              to="/taches"
+              class="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg shadow font-semibold mb-4 transition"
             >
               <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
               </svg>
-              Retour aux projets
+              Retour aux tâches
             </NuxtLink>
-            <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100">
+            <h1 class="text-3xl sm:text-4xl font-bold text-blue-900 dark:text-blue-200 mt-2">
               {{ tache?.titre }}
             </h1>
           </div>
           <div class="flex items-center space-x-4">
             <span 
               :class="[
-                'px-4 py-2 rounded-full text-sm font-medium',
+                'px-4 py-2 rounded-full text-sm font-medium shadow',
                 {
-                  'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400': tache?.status === 'EN_COURS',
-                  'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400': tache?.status === 'EN_ATTENTE',
-                  'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400': tache?.status === 'TERMINE'
+                  'bg-green-100 text-green-800 border border-green-300': tache?.statutTache === 'EN_COURS',
+                  'bg-blue-100 text-blue-800 border border-blue-300': tache?.statutTache === 'A_FAIRE',
+                  'bg-purple-100 text-purple-800 border border-purple-300': tache?.statutTache === 'TERMINEE'
                 }
               ]"
             >
-              {{ formatStatus(tache?.status) }}
+              {{ formatStatus(tache?.statutTache) }}
+            </span>
+            <span 
+              :class="[
+                'px-3 py-1 rounded-full text-xs font-semibold shadow',
+                {
+                  'bg-red-100 text-red-700 border border-red-300': tache?.priorite === 'ELEVEE',
+                  'bg-yellow-100 text-yellow-700 border border-yellow-300': tache?.priorite === 'MOYENNE',
+                  'bg-blue-100 text-blue-700 border border-blue-300': tache?.priorite === 'FAIBLE'
+                }
+              ]"
+            >
+              {{ formatPriorite(tache?.priorite) }}
             </span>
           </div>
         </div>
@@ -65,165 +77,75 @@
 
       <!-- Informations principales -->
       <div v-if="tache" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-semibold mb-4">Informations générales</h2>
+        <div class="bg-white rounded-2xl shadow-lg p-8 border border-blue-100">
+          <h2 class="text-xl font-bold mb-4 text-blue-800">Informations générales</h2>
           <div class="space-y-4">
             <div class="flex justify-between">
-              <span class="font-medium">Statut:</span>
-              <span :class="statusClass">{{ formatStatus(tache?.status) }}</span>
+              <span class="font-medium text-slate-700">Statut:</span>
+              <span :class="statusClass">{{ formatStatus(tache?.statutTache) }}</span>
             </div>
             <div class="flex justify-between">
-              <span class="font-medium">Priorité:</span>
+              <span class="font-medium text-slate-700">Priorité:</span>
               <span>{{ formatPriorite(tache?.priorite) }}</span>
             </div>
             <div class="flex justify-between">
-              <span class="font-medium">Date d'échéance:</span>
+              <span class="font-medium text-slate-700">Date d'échéance:</span>
               <span>{{ formatDate(tache?.dateEcheance) }}</span>
             </div>
             <div class="flex justify-between">
-              <span class="font-medium">Projet:</span>
-              <span>{{ tache?.projet?.name || 'Non assigné' }}</span>
+              <span class="font-medium text-slate-700">Projet lié :</span>
+              <span class="font-semibold text-blue-700">{{ tache?.projet?.libelle || tache?.projet?.name || 'Non assigné' }}</span>
             </div>
-            <div class="flex justify-between">
-              <span class="font-medium">Assigné à:</span>
-              <span>
-                <template v-if="tache?.membres && tache.membres.length > 0">
-                  {{ tache.membres.map(m => `${m.user.lastName} ${m.user.firstName}`).join(', ') }}
-                </template>
-                <template v-else>
-                  Non assigné
-                </template>
-              </span>
+            <div class="flex flex-col gap-2">
+              <span class="font-medium text-slate-700">Membres assignés :</span>
+              <ul class="pl-4 list-disc">
+                <li v-for="membre in tache.membres" :key="membre.id" class="text-slate-800">
+                  {{ membre.firstName }} {{ membre.lastName }}
+                </li>
+              </ul>
+            </div>
+            <div v-if="user.value && tache.membres && tache.membres.some(m => m.id === user.value.id)" class="mt-4 flex gap-4 items-center">
+              <button
+                v-if="tache.statutTache === 'A_FAIRE'"
+                @click="changerStatutDirect('EN_COURS')"
+                :disabled="statutLoading"
+                class="px-5 py-2 rounded-lg bg-yellow-400 text-white font-semibold shadow hover:bg-yellow-500 transition disabled:opacity-50"
+              >
+                Commencer la tâche
+              </button>
+              <button
+                v-else-if="tache.statutTache === 'EN_COURS'"
+                @click="changerStatutDirect('TERMINEE')"
+                :disabled="statutLoading"
+                class="px-5 py-2 rounded-lg bg-green-600 text-white font-semibold shadow hover:bg-green-700 transition disabled:opacity-50"
+              >
+                Terminer la tâche
+              </button>
+              <label class="block font-medium mb-1">Changer le statut :</label>
+              <select v-model="nouveauStatut" class="px-3 py-2 rounded border border-gray-300">
+                <option value="A_FAIRE">À faire</option>
+                <option value="EN_COURS">En cours</option>
+                <option value="TERMINEE">Terminée</option>
+              </select>
+              <button @click="changerStatut" :disabled="statutLoading" class="ml-2 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
+                Mettre à jour
+              </button>
+              <span v-if="statutSuccess" class="ml-2 text-green-600">Statut mis à jour !</span>
+              <span v-if="statutError" class="ml-2 text-red-600">Erreur : {{ statutError }}</span>
             </div>
           </div>
         </div>
-
-        <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-semibold mb-4">Description</h2>
+        <div class="bg-white rounded-2xl shadow-lg p-8 border border-blue-100">
+          <h2 class="text-xl font-bold mb-4 text-blue-800">Description</h2>
           <p class="text-gray-700 dark:text-gray-300">{{ tache?.description || 'Aucune description' }}</p>
         </div>
       </div>
 
-      <!-- Bloc Matériel -->
-      <div v-if="tache" class="bg-white rounded-lg shadow mb-8">
-        <div class="p-6 border-b">
-          <div class="flex justify-between items-center">
-            <h2 class="text-xl font-semibold">Matériel</h2>
-            <button
-              @click="showMaterielModal = true"
-              class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
-              v-if="canEdit"
-            >
-              <i class="fas fa-plus mr-2"></i>
-              Ajouter
-            </button>
-          </div>
-        </div>
-        <div class="p-6">
-          <MaterielList 
-            :tache-id="tache.id" 
-            ref="materielListRef"
-          />
-        </div>
-      </div>
-
+      <!-- Bloc Matériel supprimé -->
       <div v-else class="text-center text-slate-500 py-12">
         Chargement de la tâche...
       </div>
     </div>
-
-    <!-- Modal Matériel -->
-    <Modal v-model="showMaterielModal" title="Ajouter du matériel">
-      <form @submit.prevent="submitMateriel" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
-        <!-- Champ de recherche/autocomplétion -->
-        <div class="relative">
-          <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Sélectionner un matériel</label>
-          <input
-            v-model="materielSearchQuery"
-            @input="onMaterielSearchInput"
-            @focus="showMaterielSuggestions = true"
-            @blur="onMaterielSearchBlur"
-            type="text"
-            class="form-input w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
-            placeholder="Rechercher un matériel..."
-            autocomplete="off"
-          />
-          <!-- Suggestions de matériels -->
-          <div v-if="showMaterielSuggestions && filteredMaterielsDisponibles.length > 0" 
-            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg">
-            <ul class="max-h-60 overflow-auto">
-              <li v-for="materiel in filteredMaterielsDisponibles" 
-                :key="materiel.id"
-                @click="selectMateriel(materiel)"
-                class="px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
-                :class="{ 'opacity-50 cursor-not-allowed': !materiel.reutilisable && materiel.quantite <= 0 }">
-                <div class="flex justify-between items-center">
-                  <span>{{ materiel.libelle }}</span>
-                  <span class="text-xs text-gray-500">
-                    {{ materiel.quantite }} dispo{{ materiel.reutilisable ? ', réutilisable' : '' }}
-                  </span>
-                </div>
-              </li>
-            </ul>
-          </div>
-          <!-- Message si aucun résultat -->
-          <div v-if="showMaterielSuggestions && materielSearchQuery && materielSearchQuery.trim() !== '' && filteredMaterielsDisponibles.length === 0" 
-            class="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg">
-            <div class="px-4 py-2 text-gray-500 text-sm">
-              Aucun matériel trouvé
-            </div>
-          </div>
-        </div>
-
-        <!-- Matériel sélectionné -->
-        <div v-if="selectedMateriel" class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div class="flex justify-between items-center">
-            <h3 class="font-medium text-blue-900 dark:text-blue-100">{{ selectedMateriel.libelle }}</h3>
-            <button @click="selectedMateriel = null" class="text-blue-400 hover:text-blue-600">
-              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <p class="text-sm text-blue-700 dark:text-blue-300 mt-1">
-            {{ selectedMateriel.quantite }} disponible(s){{ selectedMateriel.reutilisable ? ', réutilisable' : '' }}
-          </p>
-        </div>
-
-        <!-- Champ quantité -->
-        <div v-if="selectedMateriel">
-          <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">
-            Quantité requise (max: {{ selectedMateriel.quantite }})
-          </label>
-          <input
-            v-model="materielQuantite"
-            type="number"
-            :max="selectedMateriel.quantite"
-            min="1"
-            class="form-input w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
-            :class="{ 'border-red-500': !isMaterielQuantiteValide }"
-            required
-          />
-          <p v-if="!isMaterielQuantiteValide" class="mt-1 text-sm text-red-500">
-            Quantité non disponible
-          </p>
-        </div>
-
-        <!-- Boutons -->
-        <div class="flex justify-end gap-4 pt-4">
-          <button type="button" @click="showMaterielModal = false" class="px-6 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition">
-            Annuler
-          </button>
-          <button 
-            type="submit" 
-            :disabled="!canSubmitMateriel"
-            class="px-6 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Ajouter
-          </button>
-        </div>
-      </form>
-    </Modal>
   </div>
 </template>
 
@@ -428,6 +350,41 @@ const formatPriorite = (priorite) => {
     'URGENTE': 'Urgente'
   }
   return priorites[priorite] || priorite
+}
+
+const nouveauStatut = ref("")
+const statutLoading = ref(false)
+const statutSuccess = ref(false)
+const statutError = ref("")
+
+watch(tache, (val) => {
+  if (val) {
+    nouveauStatut.value = val.statutTache
+  }
+})
+
+const changerStatut = async () => {
+  statutLoading.value = true
+  statutSuccess.value = false
+  statutError.value = ""
+  try {
+    await $axios.put(`/taches/${tache.value.id}`, {
+      ...tache.value,
+      statutTache: nouveauStatut.value
+    })
+    statutSuccess.value = true
+    await fetchTache()
+  } catch (e) {
+    statutError.value = e.response?.data?.message || 'Erreur lors de la mise à jour.'
+  } finally {
+    statutLoading.value = false
+    setTimeout(() => { statutSuccess.value = false }, 2000)
+  }
+}
+
+const changerStatutDirect = async (statut) => {
+  nouveauStatut.value = statut
+  await changerStatut()
 }
 </script>
 

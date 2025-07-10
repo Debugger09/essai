@@ -80,10 +80,9 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-end text-xs">
-            <NuxtLink to="#" class="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition duration-200">
-              Mot de passe oublié ?
-            </NuxtLink>
+          <!-- Ajout du lien mot de passe oublié sous le formulaire -->
+          <div class="mt-4 text-center">
+            <NuxtLink to="/reset-password" class="text-blue-600 hover:underline font-medium">Mot de passe oublié&nbsp;?</NuxtLink>
           </div>
 
           <div v-if="error" class="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 rounded-lg p-3">
