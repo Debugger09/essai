@@ -11,7 +11,9 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {DepenseMapper.class, TacheMapper.class, UserMapper.class})
 public interface ProjetMapper {
     @Mapping(source = "depenses", target = "depenses")
+    @Mapping(source = "membres", target = "membres")
     ProjetDto toDto(Projet projet);
     @Mapping(source = "depenses", target = "depenses")
+    @Mapping(source = "membres", target = "membres")
     Projet toEntity(ProjetDto dto);
 }

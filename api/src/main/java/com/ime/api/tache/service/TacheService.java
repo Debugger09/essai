@@ -9,4 +9,5 @@ public interface TacheService {
     List<TacheDto> getAllTaches();
     TacheDto updateTache(Long id, TacheDto tacheDto);
     void deleteTache(Long id);
+    TacheDto changerStatutTache(Long tacheId, String nouveauStatut, Long userId);
 }

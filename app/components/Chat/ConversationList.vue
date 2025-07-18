@@ -28,12 +28,12 @@
       >
         <div class="flex items-center space-x-4">
           <div class="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-semibold shadow-lg">
-            {{ getInitials(conversation.userAId === userId ? conversation.userBId : conversation.userAId) }}
+            {{ getInitials(getOtherParticipant(conversation).id) }}
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex justify-between items-start">
               <h3 class="font-medium text-gray-900 truncate">
-                {{ getDisplayName(conversation.userAId === userId ? conversation.userBId : conversation.userAId) }}
+                {{ getOtherParticipant(conversation).firstName }} {{ getOtherParticipant(conversation).lastName }}
               </h3>
               <span class="text-xs text-gray-500">
                 {{ conversation.updatedAt ? new Date(conversation.updatedAt).toLocaleTimeString() : '' }}
@@ -103,6 +103,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 import { useAuth } from '~/composables/useAuth'
 import { useUserInfo } from '~/composables/useUserInfo'
 
@@ -137,8 +138,13 @@ onUnmounted(() => {
 })
 
 const setupWebSocket = () => {
+  if (!token.value) {
+    console.error('No authentication token available')
+    return
+  }
+
   client.value = new Client({
-    brokerURL: 'ws://localhost:8080/ws',
+    webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
     connectHeaders: {
       Authorization: `Bearer ${token.value}`
     },
@@ -148,6 +154,15 @@ const setupWebSocket = () => {
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
+    onStompError: (frame) => {
+      console.error('STOMP error:', frame)
+    },
+    onWebSocketError: (event) => {
+      console.error('WebSocket error:', event)
+    },
+    onWebSocketClose: (event) => {
+      console.log('WebSocket closed:', event)
+    }
   })
 
   client.value.onConnect = () => {
@@ -192,6 +207,7 @@ const startNewConversation = async (otherUserId) => {
       userBId: otherUserId
     })
     showNewConversationModal.value = false
+    addOrUpdateConversation(response.data) // Ajout ou mise à jour sans doublon
     selectedConversationId.value = response.data.id
     emit('select', response.data.id)
   } catch (error) {
@@ -204,6 +220,23 @@ const onSelectConversation = (conversationId) => {
     selectedConversationId.value = conversationId
     emit('select', conversationId)
   }
+}
+
+// Ajout des méthodes utilitaires
+function addOrUpdateConversation(newConv) {
+  const idx = conversations.value.findIndex(c => c.id === newConv.id);
+  if (idx === -1) {
+    conversations.value.push(newConv);
+  } else {
+    conversations.value[idx] = newConv;
+  }
+}
+
+function getOtherParticipant(conversation) {
+  if (conversation.userA && conversation.userB) {
+    return conversation.userA.id !== props.userId ? conversation.userA : conversation.userB;
+  }
+  return { firstName: '', lastName: '' };
 }
 </script>
 

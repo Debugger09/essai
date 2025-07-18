@@ -1,11 +1,10 @@
 <template>
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-lg p-6 w-full max-w-md">
-      <h2 class="text-xl font-semibold mb-4">{{ file ? 'Modifier le fichier' : 'Ajouter un fichier' }}</h2>
-      
+      <h2 class="text-xl font-semibold mb-4">{{ media ? 'Modifier le média' : 'Ajouter un média' }}</h2>
       <form @submit.prevent="handleSubmit" class="space-y-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700">Nom du fichier</label>
+          <label class="block text-sm font-medium text-gray-700">Nom du média</label>
           <input
             v-model="formData.nom"
             type="text"
@@ -13,30 +12,18 @@
             required
           />
         </div>
-
         <div>
           <label class="block text-sm font-medium text-gray-700">Fichier</label>
           <input
             type="file"
             @change="handleFileChange"
             class="mt-1 block w-full"
-            required
+            :required="!media"
           />
         </div>
-
         <div class="flex justify-end space-x-2 mt-6">
-          <button
-            type="button"
-            @click="$emit('close')"
-            class="btn-secondary"
-          >
-            Annuler
-          </button>
-          <button
-            type="submit"
-            class="btn-primary"
-            :disabled="loading"
-          >
+          <button type="button" @click="$emit('close')" class="btn-secondary">Annuler</button>
+          <button type="submit" class="btn-primary" :disabled="loading">
             {{ loading ? 'Enregistrement...' : 'Enregistrer' }}
           </button>
         </div>
@@ -48,24 +35,28 @@
 <script setup>
 import { ref } from 'vue'
 import { useNuxtApp } from '#app'
+import { config } from '#app'
 
 const props = defineProps({
-  file: {
+  media: {
     type: Object,
     default: null
   },
-  projectId: {
+  entityId: {
     type: [String, Number],
+    required: true
+  },
+  entityType: {
+    type: String,
     required: true
   }
 })
 
 const emit = defineEmits(['close', 'saved'])
-
 const { $axios } = useNuxtApp()
 const loading = ref(false)
 const formData = ref({
-  nom: props.file?.nom || '',
+  nom: props.media?.nom || '',
   file: null
 })
 
@@ -76,30 +67,29 @@ const handleFileChange = (event) => {
 const handleSubmit = async () => {
   try {
     loading.value = true
-    
+
     const formDataToSend = new FormData()
     formDataToSend.append('nom', formData.value.nom)
-    formDataToSend.append('file', formData.value.file)
-    formDataToSend.append('projetId', props.projectId)
+    if (formData.value.file) {
+      formDataToSend.append('files', formData.value.file) // <-- PLURIEL
+    }
+    formDataToSend.append('entityId', props.entityId)
+    formDataToSend.append('entityType', props.entityType)
 
-    if (props.file) {
-      await $axios.put(`/api/fichiers/${props.file.id}`, formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+    if (props.media) {
+      await $axios.put(`${config.public.apiBase}/media/${props.media.id}`, formDataToSend, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
     } else {
-      await $axios.post('/api/fichiers', formDataToSend, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+      await $axios.post(`${config.public.apiBase}/media/upload`, formDataToSend, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       })
     }
 
     emit('saved')
     emit('close')
   } catch (error) {
-    console.error('Erreur lors de l\'enregistrement du fichier:', error)
+    console.error('Erreur lors de l\'enregistrement du média:', error)
   } finally {
     loading.value = false
   }

@@ -7,12 +7,16 @@ import org.mapstruct.Mappings;
 import com.ime.api.messagerie.model.Conversation;
 import com.ime.api.messagerie.dto.ConversationDto;
 
-@Mapper(componentModel = "spring", uses = {MessageMapper.class})
+import com.ime.api.user.mapper.UserMapper;
+
+@Mapper(componentModel = "spring", uses = {MessageMapper.class, UserMapper.class})
 public interface ConversationMapper {
 
     @Mappings({
         @Mapping(source = "userA.id", target = "userAId"),
         @Mapping(source = "userB.id", target = "userBId"),
+        @Mapping(source = "userA", target = "userA"),
+        @Mapping(source = "userB", target = "userB"),
         @Mapping(source = "messages", target = "messages")
     })
     ConversationDto toDto(Conversation conversation);
@@ -22,7 +26,7 @@ public interface ConversationMapper {
     @Mappings({
         @Mapping(target = "userA", ignore = true),
         @Mapping(target = "userB", ignore = true),
-        @Mapping(source = "messages", target = "messages")
+        @Mapping(source = "messages", target = "messages", ignore = true)
     })
     Conversation toEntity(ConversationDto conversationDto);
 }

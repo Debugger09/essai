@@ -9,6 +9,7 @@ import com.ime.api.user.repository.UserRepository;
 import com.ime.api.messagerie.model.Conversation;
 import com.ime.api.messagerie.repository.ConversationRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
@@ -29,7 +31,7 @@ public class MessageServiceImpl implements MessageService {
         Message message = new Message();
         message.setContent(messageDto.getContent());
         
-        Conversation conversation = conversationRepository.findById(messageDto.getConversation().getId())
+        Conversation conversation = conversationRepository.findById(messageDto.getConversationId())
             .orElseThrow(() -> new RuntimeException("Conversation not found"));
         message.setConversation(conversation);
         
@@ -87,7 +89,6 @@ public class MessageServiceImpl implements MessageService {
         MessageDto dto = new MessageDto();
         dto.setId(message.getId());
         dto.setContent(message.getContent());
-        dto.setConversation(message.getConversation());
         dto.setSender(message.getSender());
         dto.setReceiver(message.getReceiver());
         dto.setCreatedAt(message.getCreatedAt());

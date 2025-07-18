@@ -1,32 +1,31 @@
-package com.ime.api.fichier.model;
+package com.ime.api.media.model;
 
-import com.ime.api.projet.model.Projet;
-import com.ime.api.tache.model.Tache;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-
 import java.util.Date;
 
 @Entity
-@Table(name = "fichiers")
+@Table(name = "media")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Fichier {
+@Builder
+public class Media {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nom;
+    private String chemin;
+    private String type;
+    private Long taille;
 
-    private String chemin; // chemin ou url du fichier
-
-    private String type; // ex: pdf, image, docx...
-
-    private Long taille; // taille en octets
+    @Enumerated(EnumType.STRING)
+    private EntityType entityType;
+    private Long entityId;
 
     @CreationTimestamp
     @Column(updatable = false, name = "date_ajout")
@@ -35,10 +34,4 @@ public class Fichier {
     @UpdateTimestamp
     @Column(name = "date_modif")
     private Date dateModif;
-
-    @ManyToOne
-    private Projet projet;
-
-    @ManyToOne
-    private Tache tache;
-}
+} 

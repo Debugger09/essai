@@ -23,6 +23,7 @@ public class ProjetDto {
     private UserDTO chefProjet;
     private List<TacheDto> taches;
     private List<DepenseDto> depenses;
+    private List<UserDTO> membres;
     private Date createdAt;
     private Date updatedAt;
 }

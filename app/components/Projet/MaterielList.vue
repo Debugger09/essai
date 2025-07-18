@@ -23,7 +23,7 @@
         </div>
         <div class="flex items-center space-x-2">
           <button 
-            v-if="materiel.materiel?.reutilisable === true"
+            v-if="materiel.materiel?.reutilisable === true && canEdit"
             @click="returnMateriel(materiel)"
             class="p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-200"
             title="Retourner le matériel"
@@ -33,6 +33,7 @@
             </svg>
           </button>
           <button 
+            v-if="canEdit"
             @click="removeMateriel(materiel)"
             class="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200"
             title="Supprimer"
@@ -72,6 +73,10 @@ const props = defineProps({
   tacheId: {
     type: String,
     required: false
+  },
+  canEdit: {
+    type: Boolean,
+    default: false
   }
 })
 

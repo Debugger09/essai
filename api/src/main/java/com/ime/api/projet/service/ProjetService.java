@@ -11,4 +11,5 @@ public interface ProjetService {
     ProjetDto updateProjet(Long id, ProjetDto projetDto);
     void deleteProjet(Long id);
     List<ListeMaterielDto> getMaterielsByProjet(Long projetId);
+    boolean isMembre(Long projetId, Long userId);
 }

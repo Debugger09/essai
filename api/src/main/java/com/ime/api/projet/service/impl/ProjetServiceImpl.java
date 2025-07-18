@@ -17,6 +17,8 @@ import com.ime.api.tache.repository.TacheRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import java.util.List;
 
@@ -27,10 +29,15 @@ public class ProjetServiceImpl implements ProjetService {
     private final ProjetRepository projetRepository;
     private final ProjetMapper projetMapper;
     private final UserRepository userRepository;
-    private final TacheServiceImpl tacheServiceImpl;
+    private TacheServiceImpl tacheServiceImpl;
     private final TacheRepository tacheRepository;
     private final ListeMaterielRepository listeMaterielRepository;
     private final ListeMaterielMapper listeMaterielMapper;
+
+    @Autowired
+    public void setTacheServiceImpl(@Lazy TacheServiceImpl tacheServiceImpl) {
+        this.tacheServiceImpl = tacheServiceImpl;
+    }
 
     @Override
     public ProjetDto createProjet(ProjetDto projetDto) {
@@ -131,5 +138,12 @@ public class ProjetServiceImpl implements ProjetService {
             .filter(lm -> lm.getTache() != null && taches.stream().anyMatch(t -> t.getId().equals(lm.getTache().getId())))
             .toList();
         return materiels.stream().map(listeMaterielMapper::toDto).toList();
+    }
+
+    @Override
+    public boolean isMembre(Long projetId, Long userId) {
+        Projet projet = projetRepository.findById(projetId)
+            .orElseThrow(() -> new EntityNotFoundException("Projet introuvable"));
+        return projet.getMembres().stream().anyMatch(m -> m.getId().equals(userId));
     }
 }

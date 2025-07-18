@@ -7,7 +7,7 @@ import org.mapstruct.*;
 @Mapper(componentModel = "spring")
 public interface DepenseMapper {
     @Mapping(source = "projet.id", target = "projetId")
-    DepenseDto toDto(Depense entity);
+    DepenseDto toDto(Depense entity); 
 
     @Mapping(target = "projet", ignore = true)
     Depense toEntity(DepenseDto dto);

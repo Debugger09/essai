@@ -39,6 +39,14 @@ public class Projet {
     @ManyToOne
     private User chefProjet;
 
+    @ManyToMany
+    @JoinTable(
+        name = "projet_membres",
+        joinColumns = @JoinColumn(name = "projet_id"),
+        inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> membres = new ArrayList<>();
+
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private Date createdAt;

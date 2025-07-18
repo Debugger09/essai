@@ -12,4 +12,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
 
     // Permet de trouver toutes les conversations d'un utilisateur
     List<Conversation> findByUserA_IdOrUserB_Id(Long userIdA, Long userIdB);
+
+    Conversation findByUserA_IdAndUserB_Id(Long userAId, Long userBId);
 }

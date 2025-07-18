@@ -109,10 +109,17 @@
 
       <!-- Fichiers -->
       <div class="mb-8">
-        <h2 class="section-title">Fichiers attachés</h2>
+        <h2 class="section-title">Médias attachés</h2>
         <ul class="list-disc pl-5">
-          <li v-for="fichier in projet.fichiers" :key="fichier.id" class="mb-2">
-            {{ fichier.nom }}
+          <li v-for="m in media" :key="m.id" class="mb-2">
+            <template v-if="m.chemin">
+              <a :href="m.chemin" target="_blank" rel="noopener" style="color: #2563eb; text-decoration: underline;">
+                {{ m.nom || m.name }}
+              </a>
+            </template>
+            <template v-else>
+              {{ m.nom || m.name }}
+            </template>
           </li>
         </ul>
       </div>
@@ -133,6 +140,10 @@ const props = defineProps({
   projet: {
     type: Object,
     required: true
+  },
+  media: {
+    type: Array,
+    default: () => []
   }
 })
 

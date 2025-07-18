@@ -1,6 +1,5 @@
 package com.ime.api.messagerie.dto;
 
-import com.ime.api.messagerie.model.Conversation;
 import com.ime.api.user.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +12,7 @@ import java.time.LocalDateTime;
 public class MessageDto {
     private Long id;
     private String content;
-    private Conversation conversation;
+    private Long conversationId;
     private User sender;
     private User receiver;
     private LocalDateTime createdAt;

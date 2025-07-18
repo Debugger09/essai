@@ -90,7 +90,7 @@
         >
           <option value="">Tous les projets</option>
           <option v-for="projet in projets" :key="projet.id" :value="projet.id">
-            {{ projet.nom }}
+            {{ projet.name || projet.nom }}
           </option>
         </select>
       </SearchForm>
@@ -201,7 +201,7 @@
             >
               <option value="">Sélectionner un projet</option>
               <option v-for="projet in projets" :key="projet.id" :value="projet.id">
-                {{ projet.nom }}
+                {{ projet.name || projet.nom }}
               </option>
             </select>
             <p v-if="!form.projetId && submitError" class="mt-1 text-sm text-red-500">
@@ -269,7 +269,7 @@ const form = reactive({
 const filteredDepenses = computed(() => {
   return depenses.value.filter(depense => {
     const matchesSearch = depense.libelle.toLowerCase().includes(searchTerm.value.toLowerCase())
-    const matchesProjet = !selectedProjet.value || depense.projet?.id == selectedProjet.value
+    const matchesProjet = !selectedProjet.value || String(depense.projetId ?? '') === String(selectedProjet.value)
     return matchesSearch && matchesProjet
   })
 })

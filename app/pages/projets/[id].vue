@@ -1,5 +1,5 @@
 <template>
-  <ProjetPrint :projet="projet" ref="printComponent" />
+  <ProjetPrint :projet="projet" :media="projet?.media || []" ref="printComponent" />
   <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/30 dark:from-gray-900 dark:via-blue-950/50 dark:to-indigo-950/30 transition-all duration-500 no-print">
     <!-- Background Elements -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
@@ -55,6 +55,7 @@
             <NuxtLink 
               to="/projets"
               class="inline-flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-4"
+              v-if="canEdit"
             >
               <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -162,60 +163,69 @@
       <!-- Blocs principaux -->
       <div v-if="projet" class="grid grid-cols-1 lg:grid-cols-2 gap-8 no-print">
                 <!-- Bloc Tâches -->
-        <div v-if="!isUserInfoReady" class="text-center text-slate-500 py-8">Chargement des droits utilisateur...</div>
-        <div v-else id="bloc-taches" class="bg-white rounded-lg shadow">
-          <div class="p-6 border-b">
-            <div class="flex justify-between items-center">
-              <h2 class="text-xl font-semibold">Tâches</h2>
-              <button
-                @click="openAddTacheModal"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
-                v-if="canEdit && !isProjetLocked"
-              >
-                <i class="fas fa-plus mr-2"></i>
-                Ajouter
-              </button>
+        <div id="bloc-taches" class="bg-white rounded-lg shadow">
+          <div v-if="!isUserInfoReady" class="text-center text-slate-500 py-8">Chargement des droits utilisateur...</div>
+          <div v-else>
+            <div class="p-6 border-b">
+              <div class="flex justify-between items-center">
+                <h2 class="text-xl font-semibold">Tâches</h2>
+                <button
+                  @click="openAddTacheModal"
+                  class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
+                  v-if="canEdit && !isProjetLocked"
+                >
+                  <i class="fas fa-plus mr-2"></i>
+                  Ajouter
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="p-6">
-            <div class="text-xs text-gray-500 mb-2">Tâches du projet : {{ projet.taches?.length || 0 }}</div>
-            <template v-if="projet.taches && projet.taches.length">
-              <div class="space-y-4">
-                <div v-for="tache in filteredTaches" :key="tache.id" class="flex justify-between items-center p-3 bg-gray-50 rounded">
-                  <div class="flex flex-col">
-                    <span class="font-medium text-slate-900">{{ tache.libelle }}</span>
-                    <span class="text-xs text-slate-500">Échéance : {{ formatDate(tache.dateEcheance) }}</span>
-                    <span class="text-xs text-slate-500">Statut : {{ formatStatus(tache.statutTache) }}</span>
-                    <span class="text-xs text-slate-500">Membres :
-                      <template v-if="tache.membres && tache.membres.length">
-                        <span v-for="(m, idx) in tache.membres" :key="m.id">
-                          {{ m.lastName }} {{ m.firstName }}<span v-if="idx < tache.membres.length - 1">, </span>
-                        </span>
-                      </template>
-                      <template v-else>Aucun</template>
-                    </span>
-                  </div>
-                  <div class="flex flex-col items-end gap-2">
-                    <span :class="[
-                      'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold',
-                      tache.priorite === 'FAIBLE' ? 'bg-green-100 text-green-800' :
-                      tache.priorite === 'MOYENNE' ? 'bg-yellow-100 text-yellow-800' :
-                      tache.priorite === 'ELEVEE' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    ]">
-                      Priorité : {{ tache.priorite?.charAt(0) + tache.priorite?.slice(1).toLowerCase() }}
-                    </span>
-                    <button @click="openEditTacheModal(tache)" class="btn btn-sm btn-warning flex items-center justify-center p-2" title="Modifier">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                    </button>
+            <div class="p-6">
+              <div class="text-xs text-gray-500 mb-2">Tâches du projet : {{ projet.taches?.length || 0 }}</div>
+              <template v-if="filteredTaches.length">
+                <div class="space-y-4">
+                  <div v-for="tache in filteredTaches" :key="tache.id" class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                    <div class="flex flex-col">
+                      <span class="font-medium text-slate-900">{{ tache.libelle }}</span>
+                      <span class="text-xs text-slate-500">Échéance : {{ formatDate(tache.dateEcheance) }}</span>
+                      <span class="text-xs text-slate-500">Statut : {{ formatStatus(tache.statutTache) }}</span>
+                      <span class="text-xs text-slate-500">Membres :
+                        <template v-if="tache.membres && tache.membres.length">
+                          <span v-for="(m, idx) in tache.membres" :key="m.id">
+                            {{ m.lastName }} {{ m.firstName }}<span v-if="idx < tache.membres.length - 1">, </span>
+                          </span>
+                        </template>
+                        <template v-else>Aucun</template>
+                      </span>
+                    </div>
+                    <div class="flex flex-col items-end gap-2">
+                      <span :class="[
+                        'inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold',
+                        tache.priorite === 'FAIBLE' ? 'bg-green-100 text-green-800' :
+                        tache.priorite === 'MOYENNE' ? 'bg-yellow-100 text-yellow-800' :
+                        tache.priorite === 'ELEVEE' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      ]">
+                        Priorité : {{ tache.priorite?.charAt(0) + tache.priorite?.slice(1).toLowerCase() }}
+                      </span>
+                      <button @click="openEditTacheModal(tache)" class="btn btn-sm btn-warning flex items-center justify-center p-2" title="Modifier"
+                        v-if="canEdit && !isProjetLocked"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                      </button>
+                      <NuxtLink :to="`/taches/${tache.id}`" class="inline-flex items-center px-2 py-1 text-blue-600 hover:text-blue-800 rounded transition" title="Voir détails">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm6 0c0 5-9 9-9 9s-9-4-9-9a9 9 0 1118 0z" />
+                        </svg>
+                      </NuxtLink>
+                    </div>
                   </div>
                 </div>
+              </template>
+              <div v-else class="text-center text-slate-500 py-4">
+                Aucune tâche pour ce projet
               </div>
-            </template>
-            <div v-else class="text-center text-slate-500 py-4">
-              Aucune tâche pour ce projet
             </div>
           </div>
         </div>
@@ -238,6 +248,7 @@
           <div class="p-6">
             <MaterielList 
               :projet-id="projet.id" 
+              :can-edit="canEdit"
               ref="materielListRef"
               @materiel-returned="refreshMateriels"
               @materiel-removed="refreshMateriels"
@@ -246,27 +257,9 @@
         </div>
 
         <!-- Bloc Fichiers -->
-        <div id="bloc-fichiers" class="bg-white rounded-lg shadow">
-          <div class="p-6 border-b">
-            <div class="flex justify-between items-center">
-              <h2 class="text-xl font-semibold">Fichiers</h2>
-              <button
-                @click="showFichierModal = true"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition cursor-pointer"
-                v-if="canEdit && !isProjetLocked"
-              >
-                <i class="fas fa-upload mr-2"></i>
-                Ajouter
-              </button>
-            </div>
-          </div>
+        <div id="bloc-fichiers" class="bg-white rounded-lg shadow p-6">
           <div class="p-6">
-            <FileManager 
-              :projet-id="projet.id"
-              :fichiers="filteredFichiers"
-              :can-edit="canEdit"
-              @update="refreshProjet"
-            />
+            <FileManager entityType="PROJET" :entityId="projet.id" :canEdit="canEdit" />
           </div>
         </div>
 
@@ -309,7 +302,7 @@
     <!-- Modals -->
     <Modal v-model="showEditModal" title="Modifier le projet" v-if="!isProjetLocked" class="no-print">
       <div class="max-h-[80vh] overflow-y-auto">
-        <form @submit.prevent="submitEdit" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+        <form @submit.prevent="submitEdit" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700 max-h-[70vh] overflow-y-auto pr-2 hidden sm:block">
           <div>
             <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Nom</label>
             <input v-model="editForm.name" type="text" class="form-input w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" required>
@@ -358,7 +351,7 @@
     </Modal>
 
     <Modal v-model="showTacheModal" title="Ajouter une tâche" v-if="!isProjetLocked" class="no-print">
-      <form @submit.prevent="submitTache" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+      <form @submit.prevent="submitTache" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700 max-h-[70vh] overflow-y-auto pr-2 hidden sm:block">
         <div>
           <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Titre</label>
           <input v-model="tacheForm.libelle" type="text" class="form-input w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" required placeholder="Saisir le titre de la tâche">
@@ -382,10 +375,9 @@
           <div>
             <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Priorité</label>
             <select v-model="tacheForm.priorite" class="form-select w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" required>
-              <option value="BASSE">Basse</option>
+              <option value="FAIBLE">Faible</option>
               <option value="MOYENNE">Moyenne</option>
-              <option value="HAUTE">Haute</option>
-              <option value="URGENTE">Urgente</option>
+              <option value="ELEVEE">Élevée</option>
             </select>
           </div>
         </div>
@@ -426,7 +418,7 @@
     </Modal>
 
     <Modal v-model="showDepenseModal" title="Ajouter une dépense" v-if="!isProjetLocked" class="no-print">
-      <form @submit.prevent="submitDepense" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+      <form @submit.prevent="submitDepense" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700 max-h-[70vh] overflow-y-auto pr-2 hidden sm:block">
         <div>
           <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Libellé</label>
           <input v-model="depenseForm.libelle" type="text" class="form-input w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" required placeholder="Saisir le libellé">
@@ -445,7 +437,7 @@
 
 
     <Modal v-model="showMaterielModal" title="Ajouter du matériel" v-if="!isProjetLocked" class="no-print">
-      <form @submit.prevent="submitMateriel" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+      <form @submit.prevent="submitMateriel" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700 max-h-[70vh] overflow-y-auto pr-2 hidden sm:block">
         <!-- Sélection de la tâche -->
         <div>
           <label class="block text-base font-semibold mb-2 text-gray-700 dark:text-gray-200">Sélectionner une tâche</label>
@@ -547,14 +539,6 @@
       </form>
     </Modal>
 
-    <Modal v-model="showFichierModal" title="Ajouter un fichier" v-if="!isProjetLocked" class="no-print">
-      <FileModal 
-        v-if="projet" 
-        :projet-id="projet.id"
-        @uploaded="showFichierModal = false"
-      />
-    </Modal>
-
     <!-- Modal de modification de tâche -->
     <Modal v-model="showEditTacheModal" title="Modifier la tâche" v-if="!isProjetLocked" class="no-print">
       <form @submit.prevent="submitEditTache" class="space-y-6 bg-gray-50 dark:bg-gray-900 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
@@ -631,6 +615,8 @@ import Modal from '~/components/common/Modal.vue'
 import MaterielList from '~/components/Projet/MaterielList.vue'
 import MaterielListParTache from '~/components/Projet/MaterielListParTache.vue'
 import MaterielSelector from '~/components/Projet/MaterielSelector.vue'
+import FileManager from '~/components/common/FileManager.vue'
+// Supprimer l'import de FileModal si non utilisé
 
 const materielListRef = ref(null)
 const materielSelectorRef = ref(null)
@@ -672,6 +658,15 @@ const selectedMateriel = ref(null)
 const materielQuantite = ref(1)
 const materielsDisponibles = ref([])
 
+const fetchMaterielsDisponibles = async () => {
+  try {
+    const response = await $axios.get('/materiels')
+    materielsDisponibles.value = response.data
+  } catch (error) {
+    console.error('Erreur lors du chargement des matériels disponibles:', error)
+  }
+}
+
 // Formulaires
 const tacheForm = ref({
   libelle: '',
@@ -700,36 +695,48 @@ const submittingTache = ref(false)
 
 
 
-const fichierForm = ref({
-  nom: '',
-  file: null
-})
+// Supprimer toute la logique liée à fichiers
+// (fichierForm, showFichierModal, showFileModal, selectedFile, filteredFichiers, loadFichiers, submitFichier, handleFileUpload, handleFileAdded, handleFileDeleted, openAddFichierModal, etc.)
 
-const editForm = ref({
-  name: '',
-  description: '',
-  budget: 0,
-  dateDebut: '',
-  dateFin: '',
-  status: 'EN_COURS',
-  chefProjetId: null
-})
+// Charger le projet et ses médias
+const fetchProjet = async () => {
+  try {
+    loading.value = true
+    const response = await $axios.get(`/projets/${route.params.id}`)
+    projet.value = response.data
+    await loadMedia()
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Impossible de charger les détails du projet.'
+    if (err.response?.status === 403) {
+      navigateTo('/login')
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadMedia = async () => {
+  try {
+    const response = await $axios.get(`${config.public.apiBase}/media/entity`, {
+      params: { entityType: 'PROJET', entityId: route.params.id }
+    })
+    if (projet.value) projet.value.media = Array.isArray(response.data) ? response.data : []
+  } catch (err) {
+    if (!projet.value) {
+      if (err.response?.status === 403) {
+        navigateTo('/login')
+      }
+    } else {
+      error.value = "Impossible de charger les médias."
+    }
+  }
+}
 
 // Méthodes de recherche
 const filteredTaches = computed(() => {
   if (!projet.value?.taches || !isUserInfoReady.value) return []
   let taches = projet.value.taches
-
-  // Filtrage par rôle strict
-  if (userInfo.value.role === 'MEMBRE_PROJET') {
-    taches = taches.filter(tache =>
-      tache.membres?.some(m => m.id === userInfo.value.id)
-    )
-  } else if (userInfo.value.role !== 'ADMIN' && userInfo.value.role !== 'CHEF_PROJET') {
-    // Les autres rôles ne voient rien
-    taches = []
-  }
-
+  // SUPPRESSION du filtrage par rôle : tous voient toutes les tâches du projet
   if (!searchQuery.value) return taches
   const query = searchQuery.value.toLowerCase()
   return taches.filter(tache => 
@@ -749,16 +756,6 @@ const filteredDepenses = computed(() => {
 })
 
 
-
-const filteredFichiers = computed(() => {
-  if (!projet.value?.fichiers) return []
-  if (!searchQuery.value) return projet.value.fichiers
-  
-  const query = searchQuery.value.toLowerCase()
-  return projet.value.fichiers.filter(fichier => 
-    fichier.nom.toLowerCase().includes(query)
-  )
-})
 
 // Computed properties pour le formulaire de matériel
 const filteredMaterielsDisponibles = computed(() => {
@@ -801,134 +798,6 @@ const canSubmitMateriel = computed(() => {
 
 
 // Méthodes de chargement
-const fetchProjet = async () => {
-  try {
-    loading.value = true
-    console.log('Chargement du projet:', route.params.id)
-    const response = await $axios.get(`/projets/${route.params.id}`)
-    projet.value = response.data
-  } catch (err) {
-    console.error('Erreur lors du chargement du projet:', err)
-    error.value = err.response?.data?.message || 'Impossible de charger les détails du projet.'
-    if (err.response?.status === 403) {
-      navigateTo('/login')
-    }
-  } finally {
-    loading.value = false
-  }
-}
-
-const loadDepenses = async () => {
-  try {
-    const response = await $axios.get(`/depenses`, {
-      params: { projetId: route.params.id }
-    })
-    if (projet.value) projet.value.depenses = response.data
-  } catch (err) {
-    console.error('Erreur lors du chargement des dépenses:', err)
-    if (!projet.value) {
-      if (err.response?.status === 403) {
-        navigateTo('/login')
-      }
-    } else {
-      error.value = "Impossible de charger les dépenses."
-    }
-  }
-}
-
-
-
-const loadFichiers = async () => {
-  try {
-    const response = await $axios.get(`/fichiers`, {
-      params: { projetId: route.params.id }
-    })
-    if (projet.value) projet.value.fichiers = response.data
-  } catch (err) {
-    console.error('Erreur lors du chargement des fichiers:', err)
-    if (!projet.value) {
-      if (err.response?.status === 403) {
-        navigateTo('/login')
-      }
-    } else {
-      error.value = "Impossible de charger les fichiers."
-    }
-  }
-}
-
-// Méthodes pour le formulaire de matériel
-const fetchMaterielsDisponibles = async () => {
-  try {
-    console.log('Chargement des matériels disponibles...')
-    console.log('Token disponible:', !!useCookie('token').value)
-    const response = await $axios.get('/materiels')
-    console.log('Matériels disponibles reçus:', response.data)
-    materielsDisponibles.value = response.data
-  } catch (error) {
-    console.error('Erreur lors du chargement des matériels disponibles:', error)
-    console.error('Status:', error.response?.status)
-    console.error('Message:', error.response?.data)
-  }
-}
-
-const onMaterielSearchInput = () => {
-  console.log('Recherche matériel:', materielSearchQuery.value)
-  console.log('Matériels disponibles:', materielsDisponibles.value.length)
-  showMaterielSuggestions.value = true
-}
-
-const onMaterielSearchBlur = () => {
-  setTimeout(() => {
-    showMaterielSuggestions.value = false
-  }, 200)
-}
-
-const selectMateriel = (materiel) => {
-  if (!materiel.reutilisable && materiel.quantite <= 0) return
-  selectedMateriel.value = materiel
-  materielQuantite.value = 1
-  showMaterielSuggestions.value = false
-  materielSearchQuery.value = materiel.libelle
-}
-
-const submitMateriel = async () => {
-  try {
-    console.log('Début submitMateriel')
-    console.log('selectedMateriel:', selectedMateriel.value)
-    console.log('materielQuantite:', materielQuantite.value)
-    console.log('tacheId:', materielForm.value.tacheId)
-    
-    if (!materielForm.value.tacheId) {
-      alert('Veuillez sélectionner une tâche')
-      return
-    }
-    
-    const payload = {
-      materielId: selectedMateriel.value.id,
-      tacheId: materielForm.value.tacheId,
-      quantite: materielQuantite.value
-    }
-    console.log('Payload matériel envoyé:', payload)
-    const response = await $axios.post('/listemateriels', payload)
-    console.log('Réponse API:', response.data)
-    
-    showMaterielModal.value = false
-    // Reset form
-    selectedMateriel.value = null
-    materielQuantite.value = 1
-    materielSearchQuery.value = ''
-    materielForm.value.tacheId = ''
-    // Refresh la liste des matériels
-    if (materielListRef.value) materielListRef.value.loadMateriels()
-    await fetchProjet()
-    console.log('Matériel ajouté avec succès')
-  } catch (error) {
-    console.error('Erreur lors de l\'ajout du matériel:', error)
-    console.error('Status:', error.response?.status)
-    console.error('Message:', error.response?.data)
-  }
-}
-
 // Charger tous les projets pour le select du modal dépense
 const fetchAllProjets = async () => {
   console.log('fetchAllProjets appelé');
@@ -969,14 +838,6 @@ const openAddDepenseModal = () => {
 }
 
 
-
-const openAddFichierModal = () => {
-  fichierForm.value = {
-    nom: '',
-    file: null
-  }
-  showFichierModal.value = true
-}
 
 // Méthodes de soumission
 
@@ -1046,27 +907,6 @@ const submitTache = async () => {
 
 
 
-const handleFileUpload = (event) => {
-  fichierForm.value.file = event.target.files[0]
-}
-
-const submitFichier = async () => {
-  try {
-    const formData = new FormData()
-    formData.append('nom', fichierForm.value.nom)
-    formData.append('file', fichierForm.value.file)
-    const response = await $axios.post(`/projets/${route.params.id}/fichiers`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    })
-    showFichierModal.value = false
-    await fetchProjet()
-  } catch (error) {
-    console.error('Erreur lors de l\'ajout du fichier:', error)
-  }
-}
-
 // Méthode d'impression
 const printPage = () => {
   window.print()
@@ -1124,30 +964,21 @@ const handleTaskDeleted = (taskId) => {
 
 
 
-const handleFileAdded = (file) => {
-  if (!projet.value.fichiers) projet.value.fichiers = []
-  projet.value.fichiers.push(file)
-}
-
-const handleFileDeleted = (fileId) => {
-  projet.value.fichiers = projet.value.fichiers.filter(f => f.id !== fileId)
-}
-
 // Initialisation
 onMounted(async () => {
   console.log('onMounted appelé');
-  await fetchProjet()
-  await fetchUserInfo()
-  await fetchUsers()
-  await fetchAllProjets()
+  await fetchProjet(); // Charger le projet d'abord
+  await fetchMaterielsDisponibles(); // Charger tous les matériels existants pour la recherche
+  await Promise.all([
+    fetchUserInfo(),
+    fetchUsers(),
+    fetchAllProjets()
+  ]);
   if (projet.value) {
-    loadFichiers()
-    loadMembres()
+    loadMembres();
   }
-  console.log('Appel fetchMaterielsDisponibles...')
-  await fetchMaterielsDisponibles()
-  console.log('fetchMaterielsDisponibles terminé')
-})
+  console.log('fetchMaterielsDisponibles terminé');
+});
 
 // Ajouter un watcher sur l'ID du projet
 watch(() => route.params.id, (newId) => {
@@ -1249,6 +1080,14 @@ const submitEditTache = async () => {
   }
 }
 
+const selectMateriel = (materiel) => {
+  selectedMateriel.value = materiel
+  showMaterielSuggestions.value = false
+  materielSearchQuery.value = materiel.libelle
+  materielForm.value.materielId = materiel.id
+  materielQuantite.value = 1
+}
+
 watch(showMaterielModal, (val) => {
   if (val) {
     materielSelectorRef.value?.fetchMaterielsDisponibles();
@@ -1256,6 +1095,28 @@ watch(showMaterielModal, (val) => {
 });
 
 const isUserInfoReady = computed(() => !!userInfo.value && !!userInfo.value.role)
+
+const submitMateriel = async () => {
+  if (!selectedMateriel.value || !materielForm.value.tacheId || !isMaterielQuantiteValide.value) return
+  try {
+    const payload = {
+      materielId: selectedMateriel.value.id,
+      tacheId: materielForm.value.tacheId,
+      quantite: materielQuantite.value
+    }
+    await $axios.post('/listemateriels', payload)
+    showMaterielModal.value = false
+    // Reset sélection
+    selectedMateriel.value = null
+    materielForm.value.tacheId = ''
+    materielQuantite.value = 1
+    materielSearchQuery.value = ''
+    await fetchProjet() // Pour rafraîchir la liste du projet
+    if (materielListRef.value) materielListRef.value.loadMateriels() // Pour rafraîchir la liste affichée
+  } catch (error) {
+    console.error("Erreur lors de l'ajout du matériel à la tâche:", error)
+  }
+}
 </script>
 
 <style>

@@ -27,6 +27,7 @@ public class Message {
 
     @ManyToOne
     @JoinColumn(name = "id_conversation", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonBackReference
     private Conversation conversation;
 
     @ManyToOne

@@ -9,7 +9,7 @@
     <div class="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
       <!-- En-tête -->
       <div class="mb-8">
-        <h1 class="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-slate-100">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-blue-900 via-blue-700 to-indigo-600 dark:from-blue-400 dark:via-blue-300 dark:to-indigo-300 bg-clip-text text-transparent mb-3 sm:mb-4">
           {{ user.value?.role === 'ADMIN' ? 'Toutes les tâches' : 'Mes tâches' }}
         </h1>
         <p v-if="user.value?.role !== 'ADMIN' && userInfo" class="text-slate-600 dark:text-slate-400 mt-2">
@@ -143,7 +143,7 @@
           <div class="p-6">
             <div class="flex items-start justify-between mb-4">
               <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 line-clamp-2">
-                {{ tache.titre }}
+                {{ tache.libelle || tache.titre }}
               </h3>
               <div class="flex flex-col items-end space-y-2">
                 <span 
@@ -228,7 +228,7 @@
               </NuxtLink>
             </div>
             <!-- Boutons pour membre projet -->
-            <div v-if="user.value?.role === 'MEMBRE_PROJET' && Array.isArray(tache.membres) && tache.membres.some(m => m.id === user.value.id) && tache.status !== 'TERMINEE'" class="mt-4 flex gap-2">
+            <div v-if="tache.status !== 'TERMINEE'" class="mt-4 flex gap-2">
               <button
                 v-if="tache.status === 'A_FAIRE'"
                 @click="changerStatutTache(tache, 'EN_COURS')"
@@ -304,10 +304,28 @@ const triFilter = ref('priorite')
 
 // Computed
 const filteredAndSortedTaches = computed(() => {
-  let filtered = taches.value
-  if (user.value?.role === 'MEMBRE_PROJET') {
+  let filtered = taches.value.map(t => ({
+    ...t,
+    statutTache: t.statutTache || t.status, // harmonisation
+    status: t.statutTache || t.status // harmonisation
+  }))
+
+  // DEBUG temporaire
+  console.log('Tâches brutes:', taches.value)
+  console.log('Utilisateur:', user.value)
+
+  if (user.value?.role === 'ADMIN') {
+    // ADMIN : tout voir
+    // rien à filtrer
+  } else if (user.value?.role === 'MEMBRE_PROJET') {
+    // Membre projet : voir toutes les tâches où il est dans membres
     filtered = filtered.filter(tache =>
-      Array.isArray(tache.membres) && tache.membres.some(m => m.id === user.value.id)
+      Array.isArray(tache.membres) && tache.membres.some(m => m && m.id === user.value.id)
+    )
+  } else if (user.value?.id) {
+    // Autre rôle : voir toutes les tâches où il est dans membres OU toutes les tâches (fallback)
+    filtered = filtered.filter(tache =>
+      Array.isArray(tache.membres) ? tache.membres.some(m => m && m.id === user.value.id) : true
     )
   }
 
@@ -315,9 +333,11 @@ const filteredAndSortedTaches = computed(() => {
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(tache => 
-      tache.titre?.toLowerCase().includes(query) ||
+      (tache.titre?.toLowerCase().includes(query) ||
+      tache.libelle?.toLowerCase().includes(query) ||
       tache.description?.toLowerCase().includes(query) ||
-      tache.projet?.name?.toLowerCase().includes(query)
+      tache.projet?.name?.toLowerCase().includes(query) ||
+      tache.projet?.libelle?.toLowerCase().includes(query))
     )
   }
 
@@ -421,15 +441,13 @@ onMounted(async () => {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  line-clamp: 2;
 }
 
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  line-clamp: 3;
 }
 </style>
 

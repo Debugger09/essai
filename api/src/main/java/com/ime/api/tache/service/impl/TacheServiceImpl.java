@@ -12,11 +12,14 @@ import com.ime.api.user.mapper.UserMapper;
 import com.ime.api.user.dto.UserDTO;
 import com.ime.api.tache.model.ListeMembre;
 import com.ime.api.user.repository.UserRepository;
+import com.ime.api.tache.model.enums.StatutTache;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import com.ime.api.projet.service.ProjetService;
+
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,7 @@ public class TacheServiceImpl implements TacheService {
     private final ListeMembreRepository listeMembreRepository;
     private final UserMapper userMapper;
     private final UserRepository userRepository;
+    private final ProjetService projetService;
 
     public void enrichirMembres(Tache tache, TacheDto dto) {
         List<ListeMembre> membres = listeMembreRepository.findByTacheId(tache.getId());
@@ -125,5 +129,15 @@ public class TacheServiceImpl implements TacheService {
     @Override
     public void deleteTache(Long id) {
         tacheRepository.deleteById(id);
+    }
+
+    @Override
+    public TacheDto changerStatutTache(Long tacheId, String nouveauStatut, Long userId) {
+        Tache tache = tacheRepository.findById(tacheId)
+            .orElseThrow(() -> new RuntimeException("Tâche non trouvée"));
+        // Suppression de la vérification d'appartenance au projet
+        tache.setStatutTache(StatutTache.valueOf(nouveauStatut));
+        tacheRepository.save(tache);
+        return tacheMapper.toDto(tache);
     }
 }

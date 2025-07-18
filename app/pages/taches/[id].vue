@@ -94,7 +94,14 @@
             </div>
             <div class="flex justify-between">
               <span class="font-medium text-slate-700">Projet lié :</span>
-              <span class="font-semibold text-blue-700">{{ tache?.projet?.libelle || tache?.projet?.name || 'Non assigné' }}</span>
+              <NuxtLink
+                v-if="projet"
+                :to="`/projets/${projet.id}`"
+                class="font-semibold text-blue-700 underline hover:text-blue-900"
+              >
+                {{ projet.name || projet.libelle }}
+              </NuxtLink>
+              <span v-else class="font-semibold text-slate-400">Non assigné</span>
             </div>
             <div class="flex flex-col gap-2">
               <span class="font-medium text-slate-700">Membres assignés :</span>
@@ -104,7 +111,7 @@
                 </li>
               </ul>
             </div>
-            <div v-if="user.value && tache.membres && tache.membres.some(m => m.id === user.value.id)" class="mt-4 flex gap-4 items-center">
+            <div class="flex gap-4 items-center mt-4">
               <button
                 v-if="tache.statutTache === 'A_FAIRE'"
                 @click="changerStatutDirect('EN_COURS')"
@@ -121,15 +128,6 @@
               >
                 Terminer la tâche
               </button>
-              <label class="block font-medium mb-1">Changer le statut :</label>
-              <select v-model="nouveauStatut" class="px-3 py-2 rounded border border-gray-300">
-                <option value="A_FAIRE">À faire</option>
-                <option value="EN_COURS">En cours</option>
-                <option value="TERMINEE">Terminée</option>
-              </select>
-              <button @click="changerStatut" :disabled="statutLoading" class="ml-2 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50">
-                Mettre à jour
-              </button>
               <span v-if="statutSuccess" class="ml-2 text-green-600">Statut mis à jour !</span>
               <span v-if="statutError" class="ml-2 text-red-600">Erreur : {{ statutError }}</span>
             </div>
@@ -144,6 +142,10 @@
       <!-- Bloc Matériel supprimé -->
       <div v-else class="text-center text-slate-500 py-12">
         Chargement de la tâche...
+      </div>
+      <!-- Bloc Fichiers de la tâche -->
+      <div v-if="tache" class="bg-white rounded-2xl shadow-lg p-8 border border-blue-100 mt-8">
+        <FileManager entityType="TACHE" :entityId="tache.id" :canEdit="canEdit" />
       </div>
     </div>
   </div>
@@ -160,6 +162,7 @@ import { useModal } from '~/composables/useModal'
 import { useUserInfo } from '~/composables/useUserInfo'
 import Modal from '~/components/common/Modal.vue'
 import MaterielList from '~/components/Projet/MaterielList.vue'
+import FileManager from '~/components/common/FileManager.vue'
 
 // Configuration
 const config = useRuntimeConfig()
@@ -174,6 +177,7 @@ const tache = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const searchQuery = ref('')
+const projet = ref(null)
 
 // États des modals
 const showMaterielModal = ref(false)
@@ -231,6 +235,12 @@ const fetchTache = async () => {
     console.log('Chargement de la tâche:', route.params.id)
     const response = await $axios.get(`/taches/${route.params.id}`)
     tache.value = response.data
+    // Ajout : charger le projet lié si projetId existe
+    if (tache.value && tache.value.projetId) {
+      await fetchProjet(tache.value.projetId)
+    } else {
+      projet.value = null
+    }
   } catch (err) {
     console.error('Erreur lors du chargement de la tâche:', err)
     error.value = err.response?.data?.message || 'Impossible de charger les détails de la tâche.'
@@ -239,6 +249,17 @@ const fetchTache = async () => {
     }
   } finally {
     loading.value = false
+  }
+}
+
+const fetchProjet = async (projetId) => {
+  try {
+    if (!projetId) return
+    const response = await $axios.get(`/projets/${projetId}`)
+    projet.value = response.data
+  } catch (err) {
+    console.error('Erreur lors du chargement du projet:', err)
+    projet.value = null
   }
 }
 
@@ -329,7 +350,7 @@ watch(() => route.params.id, (newId) => {
 
 // Computed
 const canEdit = computed(() => {
-  return userInfo.value?.role === 'ADMIN' || (tache.value && tache.value.projet?.chefProjet?.id === userInfo.value?.id)
+  return userInfo.value?.role === 'ADMIN' || (tache.value && tache.value.membres?.some(m => m.id === userInfo.value?.id))
 })
 
 const statusClass = computed(() => {
@@ -352,14 +373,13 @@ const formatPriorite = (priorite) => {
   return priorites[priorite] || priorite
 }
 
-const nouveauStatut = ref("")
 const statutLoading = ref(false)
 const statutSuccess = ref(false)
 const statutError = ref("")
 
 watch(tache, (val) => {
   if (val) {
-    nouveauStatut.value = val.statutTache
+    // nouveauStatut.value = val.statutTache // Supprimé
   }
 })
 
@@ -370,7 +390,7 @@ const changerStatut = async () => {
   try {
     await $axios.put(`/taches/${tache.value.id}`, {
       ...tache.value,
-      statutTache: nouveauStatut.value
+      // statutTache: nouveauStatut.value // Supprimé
     })
     statutSuccess.value = true
     await fetchTache()
@@ -383,7 +403,7 @@ const changerStatut = async () => {
 }
 
 const changerStatutDirect = async (statut) => {
-  nouveauStatut.value = statut
+  // nouveauStatut.value = statut // Supprimé
   await changerStatut()
 }
 </script>

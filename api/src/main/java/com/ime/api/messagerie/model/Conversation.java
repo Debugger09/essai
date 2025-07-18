@@ -32,6 +32,7 @@ public class Conversation {
     private User userB;
 
     @OneToMany(mappedBy = "conversation", cascade = CascadeType.ALL, orphanRemoval = true)
+    @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<Message> messages;
 
     @CreationTimestamp

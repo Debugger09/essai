@@ -5,7 +5,12 @@ import com.ime.api.tache.service.TacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
+import java.util.Map;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import com.ime.api.user.service.UserService;
 
 @RestController
 @RequestMapping("/api/taches")
@@ -13,6 +18,7 @@ import java.util.List;
 public class TacheController {
 
     private final TacheService tacheService;
+    private final UserService userService;
 
     @PostMapping
     public TacheDto create(@RequestBody TacheDto tacheDto) {
@@ -32,6 +38,22 @@ public class TacheController {
     @PutMapping("/{id}")
     public TacheDto update(@PathVariable Long id, @RequestBody TacheDto tacheDto) {
         return tacheService.updateTache(id, tacheDto);
+    }
+
+    @PutMapping("/{id}/statut")
+    public ResponseEntity<?> changerStatutTache(
+        @PathVariable Long id,
+        @RequestBody Map<String, String> payload,
+        Principal principal
+    ) {
+        String nouveauStatut = payload.get("statutTache");
+        Long userId = userService.getUserByEmail(principal.getName()).getId();
+        try {
+            TacheDto updated = tacheService.changerStatutTache(id, nouveauStatut, userId);
+            return ResponseEntity.ok(updated);
+        } catch (SecurityException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/{id}")

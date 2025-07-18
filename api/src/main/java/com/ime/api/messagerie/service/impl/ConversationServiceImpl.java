@@ -30,6 +30,15 @@ public class ConversationServiceImpl implements ConversationService {
         User userB = userRepository.findById(userBId)
                 .orElseThrow(() -> new IllegalArgumentException("UserB not found"));
 
+        // Vérifier si une conversation existe déjà entre ces deux utilisateurs (dans les deux sens)
+        Conversation existing = conversationRepository.findByUserA_IdAndUserB_Id(userAId, userBId);
+        if (existing == null) {
+            existing = conversationRepository.findByUserA_IdAndUserB_Id(userBId, userAId);
+        }
+        if (existing != null) {
+            return conversationMapper.toDto(existing);
+        }
+
         Conversation conversation = new Conversation();
         conversation.setUserA(userA);
         conversation.setUserB(userB);

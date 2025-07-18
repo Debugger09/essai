@@ -8,7 +8,7 @@
         </div>
         <div>
           <h2 class="text-lg font-semibold text-gray-800">
-            {{ getDisplayName(otherUserId) }}
+            {{ otherUser.firstName ? otherUser.firstName + ' ' + otherUser.lastName : getDisplayName(otherUserId) }}
           </h2>
           <p class="text-sm text-gray-500">En ligne</p>
         </div>
@@ -20,17 +20,20 @@
       <div
         v-for="message in messages"
         :key="message.id"
-        :class="['flex', message.expediteurId === currentUserId ? 'justify-end' : 'justify-start']"
+        :class="['flex', message.sender && message.sender.id === currentUserId ? 'justify-end' : 'justify-start']"
       >
         <div
           :class="[
             'max-w-[70%] rounded-lg p-3 shadow-sm',
-            message.expediteurId === currentUserId
+            message.sender && message.sender.id === currentUserId
               ? 'bg-[#DCF8C6] text-gray-800'
               : 'bg-white text-gray-800'
           ]"
         >
-          <p class="text-sm">{{ message.contenu }}</p>
+          <p class="text-xs font-semibold mb-1" v-if="message.sender">
+            {{ message.sender.firstName }} {{ message.sender.lastName }}
+          </p>
+          <p class="text-sm">{{ message.content }}</p>
           <span class="text-xs text-gray-500 mt-1 block">
             {{ message.createdAt ? new Date(message.createdAt).toLocaleTimeString() : '' }}
           </span>
@@ -64,22 +67,15 @@
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { Client } from '@stomp/stompjs'
+import SockJS from 'sockjs-client'
 import { useAuth } from '~/composables/useAuth'
 import { useUserInfo } from '~/composables/useUserInfo'
 
 const props = defineProps({
-  conversationId: {
-    type: Number,
-    required: true
-  },
-  currentUserId: {
-    type: Number,
-    required: true
-  },
-  otherUserId: {
-    type: Number,
-    required: true
-  }
+  conversationId: { type: Number, required: true },
+  currentUserId: { type: Number, required: true },
+  otherUserId: { type: Number, required: true },
+  otherUser: { type: Object, default: () => ({ firstName: '', lastName: '' }) }
 })
 
 const messages = ref([])
@@ -121,7 +117,7 @@ const setupWebSocket = () => {
   }
 
   client.value = new Client({
-    brokerURL: 'ws://localhost:8080/ws',
+    webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
     connectHeaders: {
       Authorization: `Bearer ${token.value}`
     },
@@ -146,8 +142,12 @@ const setupWebSocket = () => {
     console.log('Connected to WebSocket')
     client.value?.subscribe(`/topic/conversation/${props.conversationId}`, (message) => {
       const messageData = JSON.parse(message.body)
-      messages.value.push(messageData)
-      scrollToBottom()
+      console.log('Message reçu via WebSocket :', messageData)
+      // Ajout uniquement si le message appartient à la bonne conversation
+      if (messageData.conversationId === props.conversationId && !messages.value.some(m => m.id === messageData.id)) {
+        messages.value.push(messageData)
+        scrollToBottom()
+      }
     })
   }
 
@@ -167,14 +167,16 @@ const sendMessage = async () => {
   if (!newMessage.value.trim()) return
 
   try {
-  const message = {
-    expediteurId: props.currentUserId,
-    conversationId: props.conversationId,
-      contenu: newMessage.value.trim()
-  }
+    const message = {
+      content: newMessage.value.trim(),
+      conversationId: props.conversationId,
+      sender: { id: props.currentUserId },
+      receiver: { id: props.otherUserId }
+    }
 
     const response = await $axios.post('/messages', message)
     if (response.status === 200) {
+      // Suppression de l'ajout optimiste du message ici
       newMessage.value = ''
     }
   } catch (error) {
