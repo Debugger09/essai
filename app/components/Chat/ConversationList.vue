@@ -207,7 +207,10 @@ const startNewConversation = async (otherUserId) => {
       userBId: otherUserId
     })
     showNewConversationModal.value = false
-    addOrUpdateConversation(response.data) // Ajout ou mise à jour sans doublon
+    const existing = conversations.value.find(c => c.id === response.data.id)
+    if (!existing) {
+      addOrUpdateConversation(response.data)
+    }
     selectedConversationId.value = response.data.id
     emit('select', response.data.id)
   } catch (error) {

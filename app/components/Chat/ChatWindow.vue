@@ -10,7 +10,10 @@
           <h2 class="text-lg font-semibold text-gray-800">
             {{ otherUser.firstName ? otherUser.firstName + ' ' + otherUser.lastName : getDisplayName(otherUserId) }}
           </h2>
-          <p class="text-sm text-gray-500">En ligne</p>
+          <p class="text-sm text-gray-500">
+            <span v-if="onlineUserIds.includes(otherUserId)">En ligne</span>
+            <span v-else>Hors ligne</span>
+          </p>
         </div>
       </div>
     </div>
@@ -70,6 +73,7 @@ import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client'
 import { useAuth } from '~/composables/useAuth'
 import { useUserInfo } from '~/composables/useUserInfo'
+import { usePresence } from '~/composables/usePresence'
 
 const props = defineProps({
   conversationId: { type: Number, required: true },
@@ -85,6 +89,7 @@ const messagesContainer = ref(null)
 const { $axios } = useNuxtApp()
 const { token } = useAuth()
 const { getInitials, getDisplayName } = useUserInfo()
+const { onlineUserIds } = usePresence()
 
 onMounted(async () => {
   await fetchMessages()
@@ -96,6 +101,17 @@ onUnmounted(() => {
   if (client.value) {
     client.value.deactivate()
   }
+})
+
+watch(() => props.conversationId, async (newId, oldId) => {
+  // Fermer l'ancien WebSocket
+  if (client.value) {
+    client.value.deactivate()
+    client.value = null
+  }
+  messages.value = []
+  await fetchMessages()
+  setupWebSocket()
 })
 
 watch(messages, () => {
@@ -175,8 +191,11 @@ const sendMessage = async () => {
     }
 
     const response = await $axios.post('/messages', message)
-    if (response.status === 200) {
-      // Suppression de l'ajout optimiste du message ici
+    if (response.status === 200 && response.data) {
+      // Ajout optimiste : on ajoute le message si pas déjà présent
+      if (!messages.value.some(m => m.id === response.data.id)) {
+        messages.value.push(response.data)
+      }
       newMessage.value = ''
     }
   } catch (error) {
