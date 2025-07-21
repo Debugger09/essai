@@ -19,6 +19,11 @@
 
     <!-- Liste des conversations -->
     <div class="overflow-y-auto h-[calc(100%-4rem)]">
+      <div v-if="conversations.length === 0" class="p-4 text-center text-gray-500">
+        <p>Aucune conversation</p>
+        <p class="text-sm">Cliquez sur + pour démarrer une conversation</p>
+      </div>
+      
       <div
         v-for="conversation in conversations"
         :key="conversation.id"
@@ -40,7 +45,7 @@
               </span>
             </div>
             <p class="text-sm text-gray-500 truncate">
-              {{ conversation.lastMessage || 'Aucun message' }}
+              {{ getLastMessage(conversation) }}
             </p>
           </div>
         </div>
@@ -149,25 +154,26 @@ const setupWebSocket = () => {
       Authorization: `Bearer ${token.value}`
     },
     debug: (str) => {
-      console.log(str)
+      console.log('[ConversationList]', str)
     },
     reconnectDelay: 5000,
     heartbeatIncoming: 4000,
     heartbeatOutgoing: 4000,
     onStompError: (frame) => {
-      console.error('STOMP error:', frame)
+      console.error('[ConversationList] STOMP error:', frame)
     },
     onWebSocketError: (event) => {
-      console.error('WebSocket error:', event)
+      console.error('[ConversationList] WebSocket error:', event)
     },
     onWebSocketClose: (event) => {
-      console.log('WebSocket closed:', event)
+      console.log('[ConversationList] WebSocket closed:', event)
     }
   })
 
   client.value.onConnect = () => {
-    console.log('Connected to WebSocket')
+    console.log('[ConversationList] Connected to WebSocket')
     client.value?.subscribe(`/topic/user/${props.userId}/conversations`, (message) => {
+      console.log('[ConversationList] Received conversation update')
       fetchConversations()
     })
   }
@@ -177,10 +183,13 @@ const setupWebSocket = () => {
 
 const fetchConversations = async () => {
   try {
+    console.log('[ConversationList] Fetching conversations for user:', props.userId)
     const response = await $axios.get(`/conversations/user/${props.userId}`)
     conversations.value = response.data
+    console.log('[ConversationList] Conversations loaded:', conversations.value)
   } catch (error) {
-    console.error('Erreur lors du chargement des conversations:', error)
+    console.error('[ConversationList] Erreur lors du chargement des conversations:', error)
+    conversations.value = []
   }
 }
 
@@ -202,6 +211,7 @@ const openNewConversationModal = () => {
 
 const startNewConversation = async (otherUserId) => {
   try {
+    console.log('[ConversationList] Creating conversation between:', props.userId, 'and', otherUserId)
     const response = await $axios.post('/conversations', {
       userAId: props.userId,
       userBId: otherUserId
@@ -214,7 +224,7 @@ const startNewConversation = async (otherUserId) => {
     selectedConversationId.value = response.data.id
     emit('select', response.data.id)
   } catch (error) {
-    console.error('Erreur lors de la création de la conversation:', error)
+    console.error('[ConversationList] Erreur lors de la création de la conversation:', error)
   }
 }
 
@@ -225,7 +235,7 @@ const onSelectConversation = (conversationId) => {
   }
 }
 
-// Ajout des méthodes utilitaires
+// Méthodes utilitaires
 function addOrUpdateConversation(newConv) {
   const idx = conversations.value.findIndex(c => c.id === newConv.id);
   if (idx === -1) {
@@ -240,6 +250,14 @@ function getOtherParticipant(conversation) {
     return conversation.userA.id !== props.userId ? conversation.userA : conversation.userB;
   }
   return { firstName: '', lastName: '' };
+}
+
+function getLastMessage(conversation) {
+  if (conversation.messages && conversation.messages.length > 0) {
+    const lastMessage = conversation.messages[conversation.messages.length - 1];
+    return lastMessage.content || 'Aucun message';
+  }
+  return 'Aucun message';
 }
 </script>
 

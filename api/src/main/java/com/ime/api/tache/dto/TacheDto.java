@@ -20,6 +20,7 @@ public class TacheDto {
     private PrioriteTache priorite;
     private StatutTache statutTache;
     private Long projetId;
+    private String projetName;
     private Date createdAt;
     private Date updatedAt;
     private List<UserDTO> membres;

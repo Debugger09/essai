@@ -118,6 +118,7 @@
               <option value="EN_COURS">En cours</option>
               <option value="TERMINE">Terminé</option>
               <option value="A_VENIR">À venir</option>
+              <option value="ARCHIVE">Archivé</option>
             </select>
           </div>
         </div>
@@ -140,7 +141,8 @@
                   {
                     'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400': projet.status === 'EN_COURS',
                     'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400': projet.status === 'A_VENIR',
-                    'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400': projet.status === 'TERMINE'
+                    'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400': projet.status === 'TERMINE',
+                    'bg-gray-200 text-gray-700 dark:bg-gray-700/60 dark:text-gray-300': projet.status === 'ARCHIVE'
                   }
                 ]"
               >
@@ -478,7 +480,8 @@ const formatStatus = (status) => {
   const statusMap = {
     'EN_COURS': 'En cours',
     'TERMINE': 'Terminé',
-    'A_VENIR': 'À venir'
+    'A_VENIR': 'À venir',
+    'ARCHIVE': 'Archivé'
   }
   return statusMap[status] || status
 }

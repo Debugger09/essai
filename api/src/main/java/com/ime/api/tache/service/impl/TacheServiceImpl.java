@@ -18,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import com.ime.api.projet.service.ProjetService;
+
 
 
 @Service
@@ -31,7 +31,7 @@ public class TacheServiceImpl implements TacheService {
     private final ListeMembreRepository listeMembreRepository;
     private final UserMapper userMapper;
     private final UserRepository userRepository;
-    private final ProjetService projetService;
+
 
     public void enrichirMembres(Tache tache, TacheDto dto) {
         List<ListeMembre> membres = listeMembreRepository.findByTacheId(tache.getId());
@@ -94,6 +94,7 @@ public class TacheServiceImpl implements TacheService {
                 .map(tache -> {
                     TacheDto dto = tacheMapper.toDto(tache);
                     enrichirMembres(tache, dto);
+                    dto.setProjetName(tache.getProjet() != null ? tache.getProjet().getName() : null);
                     return dto;
                 })
                 .toList();

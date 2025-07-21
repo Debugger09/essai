@@ -183,7 +183,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
                 <span class="font-medium">Projet:</span>
-                <span class="ml-1">{{ tache.projet?.libelle || tache.projet?.name || 'Non assigné' }}</span>
+                <span class="ml-1">{{ tache.projet?.name || tache.projet?.libelle || 'Non assigné' }}</span>
               </div>
               
               <div class="flex items-center text-sm text-slate-500 dark:text-slate-400">
@@ -310,20 +310,13 @@ const filteredAndSortedTaches = computed(() => {
     status: t.statutTache || t.status // harmonisation
   }))
 
-  // DEBUG temporaire
-  console.log('Tâches brutes:', taches.value)
-  console.log('Utilisateur:', user.value)
-
   if (user.value?.role === 'ADMIN') {
     // ADMIN : tout voir
-    // rien à filtrer
   } else if (user.value?.role === 'MEMBRE_PROJET') {
-    // Membre projet : voir toutes les tâches où il est dans membres
     filtered = filtered.filter(tache =>
       Array.isArray(tache.membres) && tache.membres.some(m => m && m.id === user.value.id)
     )
   } else if (user.value?.id) {
-    // Autre rôle : voir toutes les tâches où il est dans membres OU toutes les tâches (fallback)
     filtered = filtered.filter(tache =>
       Array.isArray(tache.membres) ? tache.membres.some(m => m && m.id === user.value.id) : true
     )

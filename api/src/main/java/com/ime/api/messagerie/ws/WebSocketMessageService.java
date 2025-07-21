@@ -24,6 +24,7 @@ public class WebSocketMessageService {
     }
 
     public void notifyConversationUpdate(Long conversationId, Object update) {
+        System.out.println("[WebSocket][WebSocketMessageService] Envoi du message sur le topic /topic/conversation/" + conversationId + " : " + update);
         logger.info("[WebSocket] Envoi du message sur le topic /topic/conversation/{} : {}", conversationId, update);
         messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, update);
     }

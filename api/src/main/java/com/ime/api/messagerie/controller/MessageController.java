@@ -22,22 +22,15 @@ public class MessageController {
     @PostMapping
     public ResponseEntity<MessageDto> create(@RequestBody MessageDto dto) {
         log.debug("Creating message: {}", dto);
-        MessageDto savedMessage = messageService.createMessage(dto);
-        
-        // Notifier les utilisateurs de la conversation
-        if (savedMessage.getConversationId() != null) {
+        try {
+            MessageDto savedMessage = messageService.createMessage(dto);
+            log.info("[DEBUG] Appel notifyConversationUpdate pour conversationId={}", savedMessage.getConversationId());
             webSocketMessageService.notifyConversationUpdate(savedMessage.getConversationId(), savedMessage);
+            return ResponseEntity.ok(savedMessage);
+        } catch (Exception e) {
+            log.error("[ERROR] Exception lors de la création du message", e);
+            return ResponseEntity.status(500).build();
         }
-        
-        // Notifier l'expéditeur et le destinataire
-        if (savedMessage.getSender() != null && savedMessage.getSender().getId() != null) {
-            webSocketMessageService.notifyNewMessage(savedMessage.getSender().getId(), savedMessage);
-        }
-        if (savedMessage.getReceiver() != null && savedMessage.getReceiver().getId() != null) {
-            webSocketMessageService.notifyNewMessage(savedMessage.getReceiver().getId(), savedMessage);
-        }
-        
-        return ResponseEntity.ok(savedMessage);
     }
 
     @GetMapping("/conversation/{conversationId}")

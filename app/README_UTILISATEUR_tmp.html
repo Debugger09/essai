@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>README_UTILISATEUR.md</title>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+
+<style>
+/* https://github.com/microsoft/vscode/blob/master/extensions/markdown-language-features/media/markdown.css */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-family: var(--vscode-markdown-font-family, -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif);
+	font-size: var(--vscode-markdown-font-size, 14px);
+	padding: 0 26px;
+	line-height: var(--vscode-markdown-line-height, 22px);
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	font-family: sans-serif;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-light.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-dark.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line .code-line:hover:before {
+	border-left: none;
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left-width: 5px;
+	border-left-style: solid;
+}
+
+code {
+	font-family: Menlo, Monaco, Consolas, "Droid Sans Mono", "Courier New", monospace, "Droid Sans Fallback";
+	font-size: 1em;
+	line-height: 1.357em;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+pre code {
+	color: var(--vscode-editor-foreground);
+	tab-size: 4;
+}
+
+/** Theming */
+
+.vscode-light pre {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+ body {
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe WPC", "Segoe UI", "Ubuntu", "Droid Sans", sans-serif, "Meiryo";
+	padding: 0 12px;
+}
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+/* Page Break : use <div class="page"/> to insert page break
+-------------------------------------------------------- */
+.page {
+	page-break-after: always;
+}
+
+</style>
+
+<script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: document.body.classList.contains('vscode-dark') || document.body.classList.contains('vscode-high-contrast')
+          ? 'dark'
+          : 'default'
+    });
+  </script>
+<h1 id="manuel-dutilisation-professionnel-%E2%80%93-application-de-gestion-de-projets">Manuel d'Utilisation Professionnel – Application de Gestion de Projets</h1>
+<p>Bienvenue dans l'application de gestion de projets d'entreprise, conçue pour optimiser la collaboration, la productivité et le suivi de vos activités professionnelles. Ce manuel s'adresse à tous les profils utilisateurs : <strong>Administrateur</strong>, <strong>Chef de projet</strong> et <strong>Membre de projet</strong>. Il détaille les droits, fonctionnalités et bonnes pratiques propres à chaque rôle.</p>
+<hr>
+<h2 id="sommaire">Sommaire</h2>
+<ol>
+<li><a href="#introduction">Introduction</a></li>
+<li><a href="#connexion-et-s%C3%A9curit%C3%A9">Connexion et sécurité</a></li>
+<li><a href="#administrateur">Administrateur</a>
+<ul>
+<li><a href="#gestion-des-utilisateurs">Gestion des utilisateurs</a></li>
+<li><a href="#gestion-des-droits-et-s%C3%A9curit%C3%A9">Gestion des droits et sécurité</a></li>
+<li><a href="#supervision-des-projets">Supervision des projets</a></li>
+</ul>
+</li>
+<li><a href="#chef-de-projet">Chef de projet</a>
+<ul>
+<li><a href="#cr%C3%A9ation-et-pilotage-de-projet">Création et pilotage de projet</a></li>
+<li><a href="#gestion-des-t%C3%A2ches-et-de-l%C3%A9quipe">Gestion des tâches et de l'équipe</a></li>
+<li><a href="#suivi-des-d%C3%A9penses-et-mat%C3%A9riels">Suivi des dépenses et matériels</a></li>
+</ul>
+</li>
+<li><a href="#membre-de-projet">Membre de projet</a>
+<ul>
+<li><a href="#consultation-et-ex%C3%A9cution-des-t%C3%A2ches">Consultation et exécution des tâches</a></li>
+<li><a href="#collaboration-et-communication">Collaboration et communication</a></li>
+</ul>
+</li>
+<li><a href="#bonnes-pratiques-et-conseils">Bonnes pratiques et conseils</a></li>
+<li><a href="#faq">FAQ</a></li>
+<li><a href="#support-et-assistance">Support et assistance</a></li>
+</ol>
+<hr>
+<h2 id="1-introduction">1. Introduction</h2>
+<p>L'application vise à centraliser la gestion de vos projets, tâches, ressources matérielles et dépenses, tout en facilitant la communication entre les membres de l'organisation. Chaque rôle dispose d'un espace personnalisé et de droits spécifiques pour garantir la sécurité, la clarté et l'efficacité du travail en équipe.</p>
+<hr>
+<h2 id="2-connexion-et-s%C3%A9curit%C3%A9">2. Connexion et sécurité</h2>
+<h3 id="%C3%A9tape--se-connecter-%C3%A0-lapplication">Étape : Se connecter à l'application</h3>
+<p><strong>Objectif</strong> : Accéder à votre espace de travail personnel et sécurisé.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Ouvrez votre navigateur web et accédez à l'URL de l'application fournie par votre administrateur.</li>
+<li>Sur la page de connexion, saisissez votre identifiant (email ou nom d'utilisateur).</li>
+<li>Entrez votre mot de passe dans le champ correspondant.</li>
+<li>Cliquez sur le bouton &quot;Se connecter&quot;.</li>
+</ol>
+<p><strong>Conseil</strong> : Activez l'option &quot;Se souvenir de moi&quot; uniquement sur votre ordinateur personnel.</p>
+<p><strong>Résultat attendu</strong> : Vous accédez à votre tableau de bord personnalisé selon votre rôle.</p>
+<h3 id="%C3%A9tape--se-d%C3%A9connecter">Étape : Se déconnecter</h3>
+<p><strong>Objectif</strong> : Fermer votre session de manière sécurisée.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Cliquez sur votre nom d'utilisateur en haut à droite de l'écran.</li>
+<li>Sélectionnez &quot;Se déconnecter&quot; dans le menu déroulant.</li>
+<li>Confirmez la déconnexion si demandé.</li>
+</ol>
+<p><strong>Conseil</strong> : Déconnectez-vous systématiquement après chaque session, surtout sur un ordinateur partagé.</p>
+<hr>
+<h2 id="3-administrateur">3. Administrateur</h2>
+<h3 id="31-gestion-des-utilisateurs">3.1. Gestion des utilisateurs</h3>
+<h4 id="%C3%A9tape--cr%C3%A9er-un-nouvel-utilisateur">Étape : Créer un nouvel utilisateur</h4>
+<p><strong>Objectif</strong> : Ajouter un nouveau membre à l'organisation avec les droits appropriés.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Connectez-vous en tant qu'administrateur.</li>
+<li>Accédez au menu &quot;Administration&quot; puis &quot;Utilisateurs&quot;.</li>
+<li>Cliquez sur &quot;Nouvel utilisateur&quot;.</li>
+<li>Remplissez les informations obligatoires :
+<ul>
+<li>Nom et prénom</li>
+<li>Adresse email (servira d'identifiant)</li>
+<li>Rôle (Administrateur, Chef de projet, Membre)</li>
+<li>Mot de passe temporaire</li>
+</ul>
+</li>
+<li>Cliquez sur &quot;Créer l'utilisateur&quot;.</li>
+</ol>
+<p><strong>Conseil</strong> : Envoyez les identifiants par email sécurisé au nouvel utilisateur.</p>
+<p><strong>Résultat attendu</strong> : L'utilisateur apparaît dans la liste et peut se connecter.</p>
+<h4 id="%C3%A9tape--modifier-les-droits-dun-utilisateur">Étape : Modifier les droits d'un utilisateur</h4>
+<p><strong>Objectif</strong> : Ajuster les permissions d'accès selon l'évolution des responsabilités.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Dans la liste des utilisateurs, cliquez sur le nom de l'utilisateur concerné.</li>
+<li>Modifiez le rôle dans le menu déroulant.</li>
+<li>Sauvegardez les modifications.</li>
+</ol>
+<p><strong>Conseil</strong> : Documentez les changements de rôle pour traçabilité.</p>
+<h3 id="32-gestion-des-droits-et-s%C3%A9curit%C3%A9">3.2. Gestion des droits et sécurité</h3>
+<h4 id="%C3%A9tape--surveiller-lactivit%C3%A9-des-utilisateurs">Étape : Surveiller l'activité des utilisateurs</h4>
+<p><strong>Objectif</strong> : Contrôler l'utilisation de l'application et détecter les anomalies.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Accédez à &quot;Administration&quot; puis &quot;Logs d'activité&quot;.</li>
+<li>Utilisez les filtres pour affiner votre recherche :
+<ul>
+<li>Période</li>
+<li>Utilisateur</li>
+<li>Type d'action</li>
+</ul>
+</li>
+<li>Consultez les détails en cliquant sur une ligne.</li>
+</ol>
+<p><strong>Conseil</strong> : Vérifiez quotidiennement les tentatives de connexion échouées.</p>
+<h3 id="33-supervision-des-projets">3.3. Supervision des projets</h3>
+<h4 id="%C3%A9tape--consulter-l%C3%A9tat-global-des-projets">Étape : Consulter l'état global des projets</h4>
+<p><strong>Objectif</strong> : Avoir une vue d'ensemble de tous les projets de l'organisation.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Accédez au menu &quot;Tableau de bord administrateur&quot;.</li>
+<li>Consultez les indicateurs :
+<ul>
+<li>Nombre de projets en cours</li>
+<li>Projets en retard</li>
+<li>Utilisation des ressources</li>
+</ul>
+</li>
+<li>Cliquez sur un projet pour accéder aux détails.</li>
+</ol>
+<p><strong>Conseil</strong> : Configurez des alertes automatiques pour les projets en difficulté.</p>
+<hr>
+<h2 id="4-chef-de-projet">4. Chef de projet</h2>
+<h3 id="41-cr%C3%A9ation-et-pilotage-de-projet">4.1. Création et pilotage de projet</h3>
+<h4 id="%C3%A9tape--cr%C3%A9er-un-nouveau-projet">Étape : Créer un nouveau projet</h4>
+<p><strong>Objectif</strong> : Initialiser un projet avec toutes les informations nécessaires au suivi.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Connectez-vous avec vos identifiants de chef de projet.</li>
+<li>Cliquez sur &quot;Projets&quot; dans le menu principal.</li>
+<li>Cliquez sur &quot;Nouveau projet&quot;.</li>
+<li>Remplissez les champs obligatoires :
+<ul>
+<li><strong>Nom du projet</strong> : Nom clair et descriptif</li>
+<li><strong>Description</strong> : Objectifs et périmètre détaillés</li>
+<li><strong>Date de début</strong> : Date de lancement effective</li>
+<li><strong>Date de fin</strong> : Date de livraison prévue</li>
+<li><strong>Budget</strong> : Montant alloué (optionnel)</li>
+<li><strong>Client</strong> : Service ou entité demandeur</li>
+</ul>
+</li>
+<li>Cliquez sur &quot;Créer le projet&quot;.</li>
+</ol>
+<p><strong>Conseil</strong> : Utilisez un nom de projet explicite (ex: &quot;Migration Cloud AWS - Q2 2024&quot;).</p>
+<p><strong>Résultat attendu</strong> : Le projet est créé et apparaît dans votre liste de projets.</p>
+<h4 id="%C3%A9tape--ajouter-des-membres-%C3%A0-un-projet">Étape : Ajouter des membres à un projet</h4>
+<p><strong>Objectif</strong> : Constituer l'équipe projet avec les bonnes compétences.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Ouvrez le projet concerné.</li>
+<li>Cliquez sur l'onglet &quot;Équipe&quot;.</li>
+<li>Cliquez sur &quot;Ajouter un membre&quot;.</li>
+<li>Sélectionnez l'utilisateur dans la liste.</li>
+<li>Définissez son rôle dans le projet (Développeur, Testeur, etc.).</li>
+<li>Validez l'ajout.</li>
+</ol>
+<p><strong>Conseil</strong> : Limitez le nombre de membres par projet pour maintenir l'efficacité.</p>
+<h3 id="42-gestion-des-t%C3%A2ches-et-de-l%C3%A9quipe">4.2. Gestion des tâches et de l'équipe</h3>
+<h4 id="%C3%A9tape--cr%C3%A9er-une-nouvelle-t%C3%A2che">Étape : Créer une nouvelle tâche</h4>
+<p><strong>Objectif</strong> : Décomposer le projet en actions concrètes et assignables.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Dans le projet, cliquez sur l'onglet &quot;Tâches&quot;.</li>
+<li>Cliquez sur &quot;Nouvelle tâche&quot;.</li>
+<li>Remplissez les informations :
+<ul>
+<li><strong>Titre</strong> : Nom clair de la tâche</li>
+<li><strong>Description</strong> : Détails et livrables attendus</li>
+<li><strong>Responsable</strong> : Membre de l'équipe assigné</li>
+<li><strong>Date de début</strong> et <strong>Date de fin</strong></li>
+<li><strong>Priorité</strong> : Haute, Moyenne, Basse</li>
+<li><strong>Statut</strong> : À faire (par défaut)</li>
+</ul>
+</li>
+<li>Cliquez sur &quot;Créer la tâche&quot;.</li>
+</ol>
+<p><strong>Conseil</strong> : Décomposez les grandes tâches en sous-tâches de 1-3 jours maximum.</p>
+<p><strong>Résultat attendu</strong> : La tâche apparaît dans la liste et le responsable reçoit une notification.</p>
+<h4 id="%C3%A9tape--suivre-lavancement-des-t%C3%A2ches">Étape : Suivre l'avancement des tâches</h4>
+<p><strong>Objectif</strong> : Contrôler le bon déroulement du projet et identifier les blocages.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Dans l'onglet &quot;Tâches&quot;, consultez les statuts :
+<ul>
+<li>Vert : Terminé</li>
+<li>Orange : En cours</li>
+<li>Rouge : En retard</li>
+</ul>
+</li>
+<li>Cliquez sur une tâche pour voir les détails.</li>
+<li>Mettez à jour le statut si nécessaire.</li>
+</ol>
+<p><strong>Conseil</strong> : Organisez des points quotidiens ou hebdomadaires avec l'équipe.</p>
+<h3 id="43-suivi-des-d%C3%A9penses-et-mat%C3%A9riels">4.3. Suivi des dépenses et matériels</h3>
+<h4 id="%C3%A9tape--enregistrer-une-d%C3%A9pense">Étape : Enregistrer une dépense</h4>
+<p><strong>Objectif</strong> : Traçabilité des coûts engagés pour le projet.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Dans le projet, cliquez sur l'onglet &quot;Dépenses&quot;.</li>
+<li>Cliquez sur &quot;Nouvelle dépense&quot;.</li>
+<li>Remplissez les champs :
+<ul>
+<li><strong>Libellé</strong> : Description de la dépense</li>
+<li><strong>Montant</strong> : Coût en euros</li>
+<li><strong>Date</strong> : Date de la dépense</li>
+<li><strong>Type</strong> : Matériel, Service, RH, etc.</li>
+<li><strong>Justificatif</strong> : Joindre le document si possible</li>
+</ul>
+</li>
+<li>Cliquez sur &quot;Enregistrer&quot;.</li>
+</ol>
+<p><strong>Conseil</strong> : Enregistrez les dépenses au fur et à mesure pour un suivi budgétaire précis.</p>
+<h4 id="%C3%A9tape--allouer-du-mat%C3%A9riel">Étape : Allouer du matériel</h4>
+<p><strong>Objectif</strong> : Affecter les ressources matérielles aux besoins du projet.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Accédez à l'onglet &quot;Matériels&quot;.</li>
+<li>Cliquez sur &quot;Ajouter un matériel&quot;.</li>
+<li>Précisez :
+<ul>
+<li><strong>Nom</strong> : Désignation du matériel</li>
+<li><strong>Type</strong> : À remplir (inventaire) ou À allouer (affectation)</li>
+<li><strong>État</strong> : Neuf, Utilisé, À remplacer</li>
+<li><strong>Projet affecté</strong> : Sélectionnez le projet</li>
+</ul>
+</li>
+<li>Validez l'ajout.</li>
+</ol>
+<p><strong>Conseil</strong> : Vérifiez la disponibilité du matériel avant de l'allouer.</p>
+<hr>
+<h2 id="5-membre-de-projet">5. Membre de projet</h2>
+<h3 id="51-consultation-et-ex%C3%A9cution-des-t%C3%A2ches">5.1. Consultation et exécution des tâches</h3>
+<h4 id="%C3%A9tape--consulter-mes-t%C3%A2ches-assign%C3%A9es">Étape : Consulter mes tâches assignées</h4>
+<p><strong>Objectif</strong> : Visualiser et organiser votre travail quotidien.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Connectez-vous à l'application.</li>
+<li>Accédez à &quot;Mes tâches&quot; dans le menu principal.</li>
+<li>Consultez la liste de vos tâches :
+<ul>
+<li>Tâches en cours</li>
+<li>Tâches à faire</li>
+<li>Tâches terminées</li>
+</ul>
+</li>
+<li>Utilisez les filtres pour organiser votre vue.</li>
+</ol>
+<p><strong>Conseil</strong> : Priorisez vos tâches selon les échéances et la complexité.</p>
+<p><strong>Résultat attendu</strong> : Vue claire de votre charge de travail.</p>
+<h4 id="%C3%A9tape--mettre-%C3%A0-jour-le-statut-dune-t%C3%A2che">Étape : Mettre à jour le statut d'une tâche</h4>
+<p><strong>Objectif</strong> : Informer l'équipe de l'avancement de votre travail.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Cliquez sur une tâche dans votre liste.</li>
+<li>Dans les détails de la tâche, modifiez le statut :
+<ul>
+<li>&quot;En cours&quot; : Vous avez commencé le travail</li>
+<li>&quot;Terminé&quot; : La tâche est achevée</li>
+<li>&quot;Bloqué&quot; : Vous rencontrez un obstacle</li>
+</ul>
+</li>
+<li>Ajoutez un commentaire pour expliquer le changement.</li>
+<li>Sauvegardez les modifications.</li>
+</ol>
+<p><strong>Conseil</strong> : Mettez à jour vos tâches quotidiennement pour maintenir la transparence.</p>
+<p><strong>Résultat attendu</strong> : Le chef de projet et l'équipe sont informés de votre avancement.</p>
+<h3 id="52-collaboration-et-communication">5.2. Collaboration et communication</h3>
+<h4 id="%C3%A9tape--ajouter-un-commentaire-%C3%A0-une-t%C3%A2che">Étape : Ajouter un commentaire à une tâche</h4>
+<p><strong>Objectif</strong> : Partager des informations importantes avec l'équipe.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Ouvrez la tâche concernée.</li>
+<li>Cliquez sur &quot;Ajouter un commentaire&quot;.</li>
+<li>Rédigez votre message :
+<ul>
+<li>Soyez clair et concis</li>
+<li>Mentionnez les personnes concernées si besoin</li>
+<li>Joignez des documents si nécessaire</li>
+</ul>
+</li>
+<li>Cliquez sur &quot;Publier&quot;.</li>
+</ol>
+<p><strong>Conseil</strong> : Utilisez les commentaires pour signaler des problèmes ou partager des solutions.</p>
+<h4 id="%C3%A9tape--demander-du-mat%C3%A9riel">Étape : Demander du matériel</h4>
+<p><strong>Objectif</strong> : Obtenir les ressources nécessaires à votre travail.</p>
+<p><strong>Procédure</strong> :</p>
+<ol>
+<li>Accédez à l'onglet &quot;Matériels&quot; du projet.</li>
+<li>Cliquez sur &quot;Demander du matériel&quot;.</li>
+<li>Remplissez le formulaire :
+<ul>
+<li><strong>Type de matériel</strong> : Ordinateur, logiciel, etc.</li>
+<li><strong>Justification</strong> : Expliquez le besoin</li>
+<li><strong>Urgence</strong> : Normal, Urgent, Critique</li>
+</ul>
+</li>
+<li>Soumettez la demande.</li>
+</ol>
+<p><strong>Conseil</strong> : Anticipez vos besoins pour éviter les blocages.</p>
+<hr>
+<h2 id="6-bonnes-pratiques-et-conseils">6. Bonnes pratiques et conseils</h2>
+<h3 id="pour-tous-les-utilisateurs">Pour tous les utilisateurs :</h3>
+<ul>
+<li><strong>Sécurité</strong> : Changez régulièrement votre mot de passe, ne le partagez jamais.</li>
+<li><strong>Sauvegarde</strong> : Sauvegardez régulièrement vos données importantes.</li>
+<li><strong>Communication</strong> : Informez l'équipe de tout changement ou difficulté.</li>
+</ul>
+<h3 id="pour-les-chefs-de-projet">Pour les chefs de projet :</h3>
+<ul>
+<li><strong>Planification</strong> : Décomposez les projets en tâches de 1-3 jours maximum.</li>
+<li><strong>Suivi</strong> : Organisez des points réguliers avec l'équipe.</li>
+<li><strong>Documentation</strong> : Maintenez à jour la documentation du projet.</li>
+</ul>
+<h3 id="pour-les-membres">Pour les membres :</h3>
+<ul>
+<li><strong>Mise à jour</strong> : Actualisez quotidiennement le statut de vos tâches.</li>
+<li><strong>Communication</strong> : Signalez immédiatement tout blocage ou problème.</li>
+<li><strong>Collaboration</strong> : Participez activement aux discussions de projet.</li>
+</ul>
+<hr>
+<h2 id="7-faq">7. FAQ</h2>
+<p><strong>Q : Comment réinitialiser mon mot de passe ?</strong>
+R : Utilisez le lien &quot;Mot de passe oublié&quot; sur la page de connexion.</p>
+<p><strong>Q : Je ne reçois pas les emails de notification.</strong>
+R : Vérifiez vos spams ou contactez l'administrateur.</p>
+<p><strong>Q : Comment ajouter un membre à un projet ?</strong>
+R : Ouvrez le projet, cliquez sur &quot;Ajouter un membre&quot; et renseignez ses informations.</p>
+<p><strong>Q : Puis-je exporter les données de mon projet ?</strong>
+R : Oui, utilisez la fonction d'export disponible dans chaque module.</p>
+<p><strong>Q : Comment signaler un bug ou une amélioration ?</strong>
+R : Contactez le support technique ou utilisez le formulaire de feedback.</p>
+<hr>
+<h2 id="8-support-et-assistance">8. Support et assistance</h2>
+<p>Pour toute question ou problème technique :</p>
+<ul>
+<li><strong>Email</strong> : support@votreentreprise.com</li>
+<li><strong>Téléphone</strong> : +33 1 XX XX XX XX</li>
+<li><strong>Documentation en ligne</strong> : [URL de la documentation]</li>
+<li><strong>Guide vidéo</strong> : Disponible sur l'intranet de l'entreprise</li>
+</ul>
+<p><strong>Horaires de support</strong> : Lundi-Vendredi, 9h-18h</p>
+<hr>
+<p><strong>Ce manuel est mis à jour régulièrement pour intégrer les nouvelles fonctionnalités et les retours des utilisateurs.</strong></p>
+
+</body>
+</html>

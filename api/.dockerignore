@@ -1,0 +1,44 @@
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Dossiers de build
+target/
+build/
+
+# Fichiers d'environnement
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation
+README.md
+*.md
+HELP.md
+
+# Fichiers temporaires
+*.tmp
+*.temp
+
+# Uploads (pour éviter de copier les fichiers uploadés)
+uploads/ 

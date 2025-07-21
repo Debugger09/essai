@@ -44,6 +44,7 @@ public class MessageServiceImpl implements MessageService {
         message.setReceiver(receiver);
         
         Message savedMessage = messageRepository.save(message);
+        log.info("[DEBUG] Message sauvegardé : id={}, conversationId={}", savedMessage.getId(), savedMessage.getConversation() != null ? savedMessage.getConversation().getId() : null);
         return convertToDto(savedMessage);
     }
 
@@ -93,6 +94,7 @@ public class MessageServiceImpl implements MessageService {
         dto.setReceiver(message.getReceiver());
         dto.setCreatedAt(message.getCreatedAt());
         dto.setUpdatedAt(message.getUpdatedAt());
+        dto.setConversationId(message.getConversation() != null ? message.getConversation().getId() : null);
         return dto;
     }
 

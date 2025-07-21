@@ -4,6 +4,5 @@ public enum StatutProjet {
     A_VENIR,
     EN_COURS,
     TERMINE,
-    ACHIVER
-
+    ARCHIVE
 }

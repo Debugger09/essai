@@ -80,13 +80,9 @@
               {{ formatStatus(projet?.status) }}
             </span>
             <button 
-              @click="editProjet"
-              class="inline-flex items-center px-4 py-2 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-lg transition-all duration-200"
-              v-if="canEdit && !isProjetLocked"
+              @click="showEditModal = true"
+              class="ml-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200"
             >
-              <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-              </svg>
               Modifier
             </button>
           </div>
@@ -602,7 +598,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed, watch, reactive, watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { useRuntimeConfig } from '#app'
 import { useNuxtApp } from '#app'
@@ -1115,6 +1111,42 @@ const submitMateriel = async () => {
     if (materielListRef.value) materielListRef.value.loadMateriels() // Pour rafraîchir la liste affichée
   } catch (error) {
     console.error("Erreur lors de l'ajout du matériel à la tâche:", error)
+  }
+}
+
+const openEditModal = (projet) => {
+  // Ici, tu peux soit router vers /projets ou ouvrir un modal local si tu veux inline edit
+  // Pour l'instant, on redirige vers la page d'accueil projets avec l'édition ouverte
+  navigateTo({ path: '/projets', query: { edit: projet.id } })
+}
+
+// Ajoute la logique JS pour le formulaire d'édition
+const editForm = reactive({
+  name: '',
+  description: '',
+  budget: 0,
+  status: 'EN_COURS'
+})
+watchEffect(() => {
+  if (showEditModal.value && projet.value) {
+    editForm.name = projet.value.name
+    editForm.description = projet.value.description
+    editForm.budget = projet.value.budget
+    editForm.status = projet.value.status
+  }
+})
+const submitEditForm = async () => {
+  try {
+    await $axios.put(`/projets/${projet.value.id}`, {
+      name: editForm.name,
+      description: editForm.description,
+      budget: editForm.budget,
+      status: editForm.status
+    })
+    await fetchProjet()
+    showEditModal.value = false
+  } catch (e) {
+    alert('Erreur lors de la modification du projet')
   }
 }
 </script>

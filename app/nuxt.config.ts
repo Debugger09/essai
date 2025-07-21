@@ -7,6 +7,9 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
+  nitro: {
+    compatibilityDate: '2025-07-19'
+  },
   runtimeConfig: {
     public: {
       apiBase: process.env.API_BASE || 'http://localhost:8080/api'

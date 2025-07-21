@@ -55,7 +55,7 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     public List<ConversationDto> findConversationsByUser(Long userId) {
-        List<Conversation> conversations = conversationRepository.findByUserA_IdOrUserB_Id(userId, userId);
+        List<Conversation> conversations = conversationRepository.findConversationsWithMessagesByUser(userId);
         return conversations.stream()
                 .map(conversationMapper::toDto)
                 .collect(Collectors.toList());

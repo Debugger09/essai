@@ -5,10 +5,10 @@
       :user-id="user?.id"
       @select="onSelectConversation"
     />
-    <ChatWindow
+    <Chat
       v-if="selectedConversationId && selectedConversation"
       :conversation-id="selectedConversationId"
-      :current-user-id="user?.id"
+      :user-id="user?.id"
       :other-user-id="selectedConversation.userAId === user?.id ? selectedConversation.userBId : selectedConversation.userAId"
     />
     <div v-else class="flex-1 flex items-center justify-center">
@@ -21,7 +21,7 @@
 import { ref } from 'vue'
 import { useAuth } from '~/composables/useAuth'
 import ConversationList from '~/components/Chat/ConversationList.vue'
-import ChatWindow from '~/components/Chat/ChatWindow.vue'
+import Chat from '~/components/Chat/Chat.vue'
 
 const { user, isAuthenticated } = useAuth()
 const selectedConversationId = ref(null)
@@ -33,6 +33,7 @@ const onSelectConversation = async (conversationId) => {
   try {
     const response = await $axios.get(`/conversations/${conversationId}`)
     selectedConversation.value = response.data
+    console.log('DEBUG selectedConversation:', response.data)
   } catch (error) {
     console.error('Erreur lors du chargement de la conversation:', error)
   }

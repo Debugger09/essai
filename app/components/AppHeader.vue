@@ -41,6 +41,9 @@
       </div>
 
       <div class="flex items-center">
+        <!-- Connection Status -->
+        <ConnectionStatus class="hidden md:flex mr-4" />
+        
         <NuxtLink
           v-if="user && user.role === 'MEMBRE_PROJET'"
           to="/messagerie"
@@ -137,6 +140,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useAuth } from '~/composables/useAuth'
+import ConnectionStatus from '~/components/common/ConnectionStatus.vue'
 
 const props = defineProps({
   isSidebarOpen: {
